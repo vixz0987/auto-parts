@@ -9,7 +9,15 @@ TEMPLATE = app
 
 SOURCES += \
     src/Controller/authcontroller.cpp \
+    src/Model/accountingview.cpp \
+    src/Model/detail.cpp \
+    src/Model/pricechange.cpp \
+    src/Model/pricehistoryview.cpp \
+    src/Model/supplier.cpp \
+    src/Model/supply.cpp \
+    src/Model/supplyview.cpp \
     src/Model/user.cpp \
+    src/Model/userinfoview.cpp \
     src/Utils/database.cpp \
     src/Utils/sessionmanager.cpp \
     src/View/logindialog.cpp \
@@ -19,7 +27,15 @@ SOURCES += \
 
 HEADERS += \
     src/Controller/authcontroller.h \
+    src/Model/accountingview.h \
+    src/Model/detail.h \
+    src/Model/pricechange.h \
+    src/Model/pricehistoryview.h \
+    src/Model/supplier.h \
+    src/Model/supply.h \
+    src/Model/supplyview.h \
     src/Model/user.h \
+    src/Model/userinfoview.h \
     src/Utils/database.h \
     src/Utils/sessionmanager.h \
     src/View/logindialog.h \
