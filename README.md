@@ -41,7 +41,9 @@ auto-parts/
 │   │   │   └── user.cpp
 │   │   ├── Controller/
 │   │   │   ├── authcontroller.h
-│   │   │   └── authcontroller.cpp
+│   │   │   ├── authcontroller.cpp
+│   │   │   ├── usercontroller.h
+│   │   │   └── usercontroller.cpp
 │   │   └── Utils/
 │   │   │   ├── sessionmanager.h
 │   │   │   ├── sessionmanager.h
