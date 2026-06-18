@@ -2,6 +2,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QTableWidget>
 #include "../Model/user.h"
 
 QT_BEGIN_NAMESPACE
@@ -26,6 +27,21 @@ private:
     void addAdminTabs();
     void addManagerTabs();
     void addAccountantTabs();
+
+    // Вспомогательные методы для вкладки "Пользователи"
+    void refreshUsersTable();
+    void onAddUser();
+    void onChangeRole();
+    void onDeleteUser();
+
+    QTableWidget *m_usersTable;  // таблица пользователей
+
+    // Поставщики
+    void refreshSuppliersTable();
+    void onAddSupplier();
+    void onEditSupplier();
+    void onDeleteSupplier();
+    QTableWidget *m_suppliersTable;
 };
 
 #endif // MAINWINDOW_H

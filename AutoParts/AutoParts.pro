@@ -9,6 +9,7 @@ TEMPLATE = app
 
 SOURCES += \
     src/Controller/authcontroller.cpp \
+    src/Controller/suppliercontroller.cpp \
     src/Controller/usercontroller.cpp \
     src/Model/accountingview.cpp \
     src/Model/detail.cpp \
@@ -24,11 +25,14 @@ SOURCES += \
     src/Utils/sessionmanager.cpp \
     src/View/logindialog.cpp \
     src/View/registerdialog.cpp \
+    src/View/supplierdialog.cpp \
+    src/View/userdialog.cpp \
     src/main.cpp \
     src/View/mainwindow.cpp
 
 HEADERS += \
     src/Controller/authcontroller.h \
+    src/Controller/suppliercontroller.h \
     src/Controller/usercontroller.h \
     src/Model/accountingview.h \
     src/Model/detail.h \
@@ -44,12 +48,16 @@ HEADERS += \
     src/Utils/sessionmanager.h \
     src/View/logindialog.h \
     src/View/mainwindow.h \
-    src/View/registerdialog.h
+    src/View/registerdialog.h \
+    src/View/supplierdialog.h \
+    src/View/userdialog.h
 
 FORMS += \
     src/View/logindialog.ui \
     src/View/mainwindow.ui \
-    src/View/registerdialog.ui
+    src/View/registerdialog.ui \
+    src/View/supplierdialog.ui \
+    src/View/userdialog.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
