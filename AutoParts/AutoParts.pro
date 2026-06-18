@@ -1,20 +1,23 @@
-QT += widgets
+QT += core gui sql
+
+greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
 
-# You can make your code fail to compile if it uses deprecated APIs.
-# In order to do so, uncomment the following line.
-#DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
+TARGET = AutoParts
+TEMPLATE = app
 
 SOURCES += \
-    src/View/mainwindow.cpp \
+    src/Utils/database.cpp \
     src/main.cpp \
+    src/View/mainwindow.cpp
 
 HEADERS += \
-    src/View/mainwindow.h \
+    src/Utils/database.h \
+    src/View/mainwindow.h
 
 FORMS += \
-    src/View/mainwindow.ui \
+    src/View/mainwindow.ui
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
