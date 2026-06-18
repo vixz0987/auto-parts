@@ -9,6 +9,7 @@ TEMPLATE = app
 
 SOURCES += \
     src/Controller/authcontroller.cpp \
+    src/Controller/usercontroller.cpp \
     src/Model/accountingview.cpp \
     src/Model/detail.cpp \
     src/Model/pricechange.cpp \
@@ -28,6 +29,7 @@ SOURCES += \
 
 HEADERS += \
     src/Controller/authcontroller.h \
+    src/Controller/usercontroller.h \
     src/Model/accountingview.h \
     src/Model/detail.h \
     src/Model/pricechange.h \
