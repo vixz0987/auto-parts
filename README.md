@@ -1,7 +1,8 @@
 # course-project
 
-структура проекта 
+## структура проекта 
 
+```
 auto-parts/
 ├── AutoParts/
 │   ├── AutoParts.pro
@@ -18,3 +19,4 @@ auto-parts/
 ├── .gitignore
 ├── README.md
 └── .git/
+```
