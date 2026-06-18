@@ -35,6 +35,8 @@ auto-parts/
 │   │   │   ├── supplyview.h
 │   │   │   ├── userinfoview.cpp
 │   │   │   ├── userinfoview.h
+│   │   │   ├── supplierpricechange.cpp
+│   │   │   ├── supplierpricechange.h
 │   │   │   ├── user.h
 │   │   │   └── user.cpp
 │   │   ├── Controller/
