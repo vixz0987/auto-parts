@@ -15,6 +15,8 @@ auto-parts/
 │   │   ├── Model/
 │   │   ├── Controller/
 │   │   └── Utils/
+│   │   │   ├── database.h
+│   │   │   └── database.cpp
 │   └── resources/
 ├── .gitignore
 ├── README.md
