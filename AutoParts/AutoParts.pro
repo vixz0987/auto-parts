@@ -14,6 +14,7 @@ SOURCES += \
     src/Model/pricechange.cpp \
     src/Model/pricehistoryview.cpp \
     src/Model/supplier.cpp \
+    src/Model/supplierpricechange.cpp \
     src/Model/supply.cpp \
     src/Model/supplyview.cpp \
     src/Model/user.cpp \
@@ -32,6 +33,7 @@ HEADERS += \
     src/Model/pricechange.h \
     src/Model/pricehistoryview.h \
     src/Model/supplier.h \
+    src/Model/supplierpricechange.h \
     src/Model/supply.h \
     src/Model/supplyview.h \
     src/Model/user.h \
