@@ -1,5 +1,6 @@
 #include "View/mainwindow.h"
 #include "Utils/database.h"
+#include "Utils/sessionmanager.h"
 #include <QApplication>
 #include <QMessageBox>
 
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
 
     int result = a.exec();
 
+    SessionManager::destroy();
     Database::destroy();
     return result;
 }
