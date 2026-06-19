@@ -20,21 +20,13 @@ MainWindow::MainWindow(TcpClient *client, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_client(client)
 {
     ui->setupUi(this);
-
-    LoginDialog loginDlg(client, this);
-    if (loginDlg.exec() != QDialog::Accepted) {
-        QApplication::quit();
-        return;
-    }
-
     UserInfo user = SessionManager::instance()->currentUser();
     if (user.id == 0) {
-        QMessageBox::critical(this, "Ошибка", "Не удалось получить данные пользователя.");
+        QMessageBox::critical(this, "Error", "No authenticated user.");
         QApplication::quit();
         return;
     }
-
-    ui->statusbar->showMessage(QString("Авторизован: %1 (%2)").arg(user.fio, user.role));
+    ui->statusbar->showMessage(QString("User: %1 (%2)").arg(user.fio, user.role));
     connect(m_client, &TcpClient::responseReceived, this, &MainWindow::onServerResponse);
     setupUiForRole(user.role);
 }
@@ -70,7 +62,7 @@ void MainWindow::addAdminTabs()
     m_usersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_usersTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_usersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    m_usersTable->horizontalHeader()->setStretchLastSection(true);
+    m_usersTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     userLayout->addWidget(m_usersTable);
 
     QWidget *btnPanel = new QWidget();
@@ -105,7 +97,7 @@ void MainWindow::addManagerTabs()
     m_suppliesTable = new QTableWidget(this);
     m_suppliesTable->setColumnCount(8);
     m_suppliesTable->setHorizontalHeaderLabels({"ID", "Дата", "Поставщик", "Артикул", "Деталь", "Цена", "Кол-во", "Сумма"});
-    m_suppliesTable->horizontalHeader()->setStretchLastSection(true);
+    m_suppliesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     suppliesLayout->addWidget(m_suppliesTable);
     ui->tabWidgetMain->addTab(suppliesTab, "Поставки");
     refreshSuppliesTable();
@@ -116,7 +108,7 @@ void MainWindow::addManagerTabs()
     m_priceHistoryTable = new QTableWidget(this);
     m_priceHistoryTable->setColumnCount(4);
     m_priceHistoryTable->setHorizontalHeaderLabels({"Артикул", "Деталь", "Дата", "Цена"});
-    m_priceHistoryTable->horizontalHeader()->setStretchLastSection(true);
+    m_priceHistoryTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     pricesLayout->addWidget(m_priceHistoryTable);
     ui->tabWidgetMain->addTab(pricesTab, "Цены");
     refreshPriceHistoryTable();
@@ -127,7 +119,7 @@ void MainWindow::addManagerTabs()
     m_suppliersTable = new QTableWidget(this);
     m_suppliersTable->setColumnCount(4);
     m_suppliersTable->setHorizontalHeaderLabels({"ID", "Название", "Телефон", "Адрес"});
-    m_suppliersTable->horizontalHeader()->setStretchLastSection(true);
+    m_suppliersTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     suppliersLayout->addWidget(m_suppliersTable);
 
     QWidget *btnPanel = new QWidget();
@@ -157,7 +149,7 @@ void MainWindow::addAccountantTabs()
     m_accountingTable = new QTableWidget(this);
     m_accountingTable->setColumnCount(7);
     m_accountingTable->setHorizontalHeaderLabels({"Дата", "Поставщик", "Артикул", "Деталь", "Кол-во", "Цена", "Сумма"});
-    m_accountingTable->horizontalHeader()->setStretchLastSection(true);
+    m_accountingTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     accLayout->addWidget(m_accountingTable);
     ui->tabWidgetMain->addTab(accTab, "Бухгалтерия");
     refreshAccountingTable();
@@ -168,14 +160,13 @@ void MainWindow::addAccountantTabs()
     QTableWidget *priceTable = new QTableWidget(this);
     priceTable->setColumnCount(4);
     priceTable->setHorizontalHeaderLabels({"Артикул", "Деталь", "Дата", "Цена"});
+    priceTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     priceLayout->addWidget(priceTable);
     ui->tabWidgetMain->addTab(priceTab, "Цены");
-    // подключим к тому же идентификатору
-    connect(this, &MainWindow::destroyed, [=]() { /* ничего, просто чтобы таблица жила */ });
-    // для обновления используем отдельный запрос
+
+    m_priceHistoryTable = priceTable;
+
     m_pendingPriceHistoryId = m_client->sendCommand("PRICEHISTORY");
-    // но чтобы обновить эту таблицу, нужно сохранить указатель. Упростим: пусть обновляется вместе с общей.
-    // для простоты оставим как есть, данные загрузятся при старте.
 }
 
 void MainWindow::onServerResponse(quint32 id, const QString &response)

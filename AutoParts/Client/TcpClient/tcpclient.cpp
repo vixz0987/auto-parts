@@ -2,7 +2,7 @@
 #include <QDebug>
 
 TcpClient::TcpClient(const QString &host, quint16 port, QObject *parent)
-    : QObject(parent), m_host(host), m_port(port), m_socket(new QTcpSocket(this))
+    : QObject(parent), m_socket(new QTcpSocket(this)), m_host(host), m_port(port)
 {
     connect(m_socket, &QTcpSocket::connected, this, &TcpClient::onConnected);
     connect(m_socket, &QTcpSocket::readyRead, this, &TcpClient::onReadyRead);

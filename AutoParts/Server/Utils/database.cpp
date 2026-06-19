@@ -29,10 +29,9 @@ bool Database::connectToDatabase()
     db.setPassword("1postgre1");
 
     if (!db.open()) {
-        qCritical() << "ОШИБКА подключения к PostgreSQL:" << db.lastError().text();
-        return false;
+        qCritical() << "Failed to connect to PostgreSQL:" << db.lastError().text();        return false;
     }
-    qInfo() << "Подключение к PostgreSQL установлено";
+    qInfo() << "Connected to PostgreSQL";
     return true;
 }
 
