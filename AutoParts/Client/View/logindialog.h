@@ -25,3 +25,4 @@ private:
 };
 
 #endif // LOGINDIALOG_H
+

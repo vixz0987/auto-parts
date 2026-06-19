@@ -1,58 +1,64 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>SupplierDialog</class>
- <widget class="QDialog" name="SupplierDialog">
+ <class>SupplyDialog</class>
+ <widget class="QDialog" name="SupplyDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>280</height>
+    <height>300</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Поставщик</string>
+   <string>Supply</string>
   </property>
-  <widget class="QWidget" name="">
-   <property name="geometry">
-    <rect>
-     <x>20</x>
-     <y>20</y>
-     <width>360</width>
-     <height>200</height>
-    </rect>
-   </property>
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QLineEdit" name="lineName">
-      <property name="placeholderText">
-       <string>Название</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="linePhone">
-      <property name="placeholderText">
-       <string>Телефон</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QLineEdit" name="lineAddress">
-      <property name="placeholderText">
-       <string>Адрес</string>
-      </property>
-     </widget>
-    </item>
-    <item>
-     <widget class="QDialogButtonBox" name="buttonBox">
-      <property name="standardButtons">
-       <set>QDialogButtonBox::Ok|QDialogButtonBox::Cancel</set>
-      </property>
-     </widget>
-    </item>
-   </layout>
-  </widget>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="labelDate">
+     <property name="text"><string>Supply date:</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDateEdit" name="dateEdit">
+     <property name="calendarPopup"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelSupplier">
+     <property name="text"><string>Supplier:</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="comboSupplier"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelPriceChange">
+     <property name="text"><string>Price change (article / date):</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="comboPriceChange"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelQuantity">
+     <property name="text"><string>Quantity:</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QSpinBox" name="spinQuantity">
+     <property name="minimum"><number>1</number></property>
+     <property name="maximum"><number>999999</number></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Ok|QDialogButtonBox::Cancel</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
  </widget>
  <resources/>
  <connections/>
