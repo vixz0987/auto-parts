@@ -2,26 +2,26 @@
 #define SESSIONMANAGER_H
 
 #include <QObject>
-#include "../Model/user.h"
+#include "Services/ClientService.h"
 
 class SessionManager : public QObject
 {
     Q_OBJECT
-
 public:
     static SessionManager* instance();
     static void destroy();
 
-    User* currentUser() const;
-    void setCurrentUser(User *user);
+    void setCurrentUser(const UserData &user);
+    UserData currentUser() const;
     bool isLoggedIn() const;
+    void logout();
 
 private:
     explicit SessionManager(QObject *parent = nullptr);
     ~SessionManager();
-
     static SessionManager* m_instance;
-    User *m_currentUser;
+    UserData m_currentUser;
+    bool m_loggedIn = false;
 };
 
 #endif // SESSIONMANAGER_H

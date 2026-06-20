@@ -28,13 +28,13 @@ QList<CurrentPriceView*> CurrentPriceView::loadAll()
     QList<CurrentPriceView*> list;
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
-    query.exec("SELECT detail_id, article, name, price, change_date, supplier_id, supplier_name "
+    query.exec("SELECT detail_id, article, detail_name, price, change_date, supplier_id, supplier_name "
                "FROM auto_parts.vw_current_prices ORDER BY article");
     while (query.next()) {
         list.append(new CurrentPriceView(
             query.value("detail_id").toInt(),
             query.value("article").toString(),
-            query.value("name").toString(),
+            query.value("detail_name").toString(),
             query.value("price").toDouble(),
             query.value("change_date").toDate(),
             query.value("supplier_id").toInt(),

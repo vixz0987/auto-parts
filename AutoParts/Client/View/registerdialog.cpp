@@ -2,24 +2,20 @@
 #include "ui_registerdialog.h"
 #include <QMessageBox>
 #include <QRegularExpression>
-#include <QJsonDocument>
-#include <QJsonObject>
 
-RegisterDialog::RegisterDialog(TcpClient *client, QWidget *parent)
-    : QDialog(parent), ui(new Ui::RegisterDialog), m_client(client)
+RegisterDialog::RegisterDialog(ClientService* service, QWidget *parent)
+    : QDialog(parent), ui(new Ui::RegisterDialog), m_service(service)
 {
     ui->setupUi(this);
     setWindowTitle("Активация учётной записи");
 
     connect(ui->btnRegister, &QPushButton::clicked, this, &RegisterDialog::onRegisterClicked);
     connect(ui->btnCancel, &QPushButton::clicked, this, &QDialog::reject);
-    connect(m_client, &TcpClient::responseReceived, this, &RegisterDialog::onActivateResponse);
+    connect(m_service, &ClientService::activationSuccess, this, &RegisterDialog::onActivationSuccess);
+    connect(m_service, &ClientService::activationError, this, &RegisterDialog::onActivationError);
 }
 
-RegisterDialog::~RegisterDialog()
-{
-    delete ui;
-}
+RegisterDialog::~RegisterDialog() { delete ui; }
 
 void RegisterDialog::onRegisterClicked()
 {
@@ -43,33 +39,22 @@ void RegisterDialog::onRegisterClicked()
         return;
     }
 
-    QJsonObject obj;
-    obj["login"] = login;
-    obj["fio"] = fio;
-    obj["password"] = password;
-    QJsonDocument doc(obj);
-    QString cmd = "ACTIVATE " + doc.toJson(QJsonDocument::Compact);
-    m_pendingId = m_client->sendCommand(cmd);
-
     ui->btnRegister->setEnabled(false);
     ui->btnCancel->setEnabled(false);
+    m_service->activate(login, fio, password);
 }
 
-void RegisterDialog::onActivateResponse(quint32 id, const QString &response)
+void RegisterDialog::onActivationSuccess()
 {
-    if (id != m_pendingId) return;
-
     ui->btnRegister->setEnabled(true);
     ui->btnCancel->setEnabled(true);
+    QMessageBox::information(this, "Успех", "Учётная запись активирована! Теперь вы можете войти.");
+    accept();
+}
 
-    if (response.startsWith("OK ACTIVATED")) {
-        QMessageBox::information(this, "Успех", "Учётная запись активирована! Теперь вы можете войти.");
-        accept();
-    } else {
-        QString err = "Не удалось активировать учётную запись.";
-        if (response.startsWith("ERROR ")) {
-            err = response.mid(QString("ERROR ").length());
-        }
-        QMessageBox::critical(this, "Ошибка", err);
-    }
+void RegisterDialog::onActivationError(const QString& error)
+{
+    ui->btnRegister->setEnabled(true);
+    ui->btnCancel->setEnabled(true);
+    QMessageBox::critical(this, "Ошибка", error);
 }

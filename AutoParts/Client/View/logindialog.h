@@ -2,7 +2,7 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
-#include "TcpClient/tcpclient.h"
+#include "Services/ClientService.h"
 
 namespace Ui { class LoginDialog; }
 
@@ -10,19 +10,18 @@ class LoginDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit LoginDialog(TcpClient *client, QWidget *parent = nullptr);
+    explicit LoginDialog(ClientService* service, QWidget *parent = nullptr);
     ~LoginDialog();
 
 private slots:
     void onLoginClicked();
     void onRegisterClicked();
-    void onLoginResponse(quint32 id, const QString &response);
+    void onLoginSuccess(const UserData& user);
+    void onLoginError(const QString& error);
 
 private:
-    Ui::LoginDialog *ui;
-    TcpClient *m_client;
-    quint32 m_pendingLoginId = 0;
+    Ui::LoginDialog* ui;
+    ClientService* m_service;
 };
 
 #endif // LOGINDIALOG_H
-

@@ -2,7 +2,7 @@
 #define PROFILEDIALOG_H
 
 #include <QDialog>
-#include "TcpClient/tcpclient.h"
+#include "Services/ClientService.h"
 
 namespace Ui { class ProfileDialog; }
 
@@ -10,18 +10,18 @@ class ProfileDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit ProfileDialog(TcpClient *client, int userId, QWidget *parent = nullptr);
+    explicit ProfileDialog(ClientService* service, int userId, QWidget *parent = nullptr);
     ~ProfileDialog();
 
 private slots:
     void onSave();
-    void onServerResponse(quint32 id, const QString &response);
+    void onOperationSuccess(quint32 requestId, const QString& message);
+    void onOperationError(quint32 requestId, const QString& error);
 
 private:
-    Ui::ProfileDialog *ui;
-    TcpClient *m_client;
+    Ui::ProfileDialog* ui;
+    ClientService* m_service;
     int m_userId;
-    quint32 m_pendingId = 0;
 };
 
 #endif // PROFILEDIALOG_H

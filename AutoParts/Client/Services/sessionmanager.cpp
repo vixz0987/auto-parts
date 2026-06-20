@@ -17,13 +17,13 @@ void SessionManager::destroy()
     m_instance = nullptr;
 }
 
-void SessionManager::setCurrentUser(const UserInfo &user)
+void SessionManager::setCurrentUser(const UserData &user)
 {
     m_currentUser = user;
     m_loggedIn = true;
 }
 
-UserInfo SessionManager::currentUser() const
+UserData SessionManager::currentUser() const
 {
     return m_currentUser;
 }
@@ -36,5 +36,5 @@ bool SessionManager::isLoggedIn() const
 void SessionManager::logout()
 {
     m_loggedIn = false;
-    m_currentUser = UserInfo();
+    m_currentUser = UserData();
 }

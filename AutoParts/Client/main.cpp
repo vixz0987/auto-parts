@@ -3,7 +3,8 @@
 #include "TcpClient/tcpclient.h"
 #include "View/logindialog.h"
 #include "View/mainwindow.h"
-#include "Utils/sessionmanager.h"
+#include "Services/sessionmanager.h"
+#include "Services/ClientService.h"
 
 int main(int argc, char *argv[])
 {
@@ -17,9 +18,10 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    LoginDialog loginDlg(&client);
+    ClientService service(&client);
+    LoginDialog loginDlg(&service);
     if (loginDlg.exec() != QDialog::Accepted) {
-        return 0;   // выход без запуска главного окна
+        return 0;
     }
 
     MainWindow w(&client);

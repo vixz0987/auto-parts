@@ -2,7 +2,7 @@
 #define REGISTERDIALOG_H
 
 #include <QDialog>
-#include "TcpClient/tcpclient.h"
+#include "Services/ClientService.h"
 
 namespace Ui { class RegisterDialog; }
 
@@ -10,17 +10,17 @@ class RegisterDialog : public QDialog
 {
     Q_OBJECT
 public:
-    explicit RegisterDialog(TcpClient *client, QWidget *parent = nullptr);
+    explicit RegisterDialog(ClientService* service, QWidget *parent = nullptr);
     ~RegisterDialog();
 
 private slots:
     void onRegisterClicked();
-    void onActivateResponse(quint32 id, const QString &response);
+    void onActivationSuccess();
+    void onActivationError(const QString& error);
 
 private:
-    Ui::RegisterDialog *ui;
-    TcpClient *m_client;
-    quint32 m_pendingId = 0;
+    Ui::RegisterDialog* ui;
+    ClientService* m_service;
 };
 
 #endif // REGISTERDIALOG_H

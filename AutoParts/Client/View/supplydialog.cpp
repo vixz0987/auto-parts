@@ -4,19 +4,14 @@
 #include <QPushButton>
 #include <algorithm>
 #include <QSet>
-#include <QDate>
 
-SupplyDialog::SupplyDialog(const SupplyDialogData &data, QWidget *parent)
-    : QDialog(parent), ui(new Ui::SupplyDialog), m_data(data)
+SupplyDialog::SupplyDialog(ClientService* service, QWidget *parent)
+    : QDialog(parent), ui(new Ui::SupplyDialog), m_service(service)
 {
     ui->setupUi(this);
     ui->dateEdit->setDate(QDate::currentDate());
     setWindowTitle("Новая поставка");
 
-    for (const auto &s : m_data.suppliers)
-        ui->comboSupplier->addItem(s.name, s.id);
-
-    // Блокируем всё, кроме выбора поставщика
     ui->comboDetail->setEnabled(false);
     ui->dateEdit->setEnabled(false);
     ui->spinQuantity->setEnabled(false);
@@ -33,21 +28,49 @@ SupplyDialog::SupplyDialog(const SupplyDialogData &data, QWidget *parent)
     connect(ui->comboDetail, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, &SupplyDialog::onDetailChanged);
     connect(ui->dateEdit, &QDateEdit::dateChanged, this, &SupplyDialog::tryAutoSelectPrice);
+
+    connect(m_service, &ClientService::suppliersLoaded, this, &SupplyDialog::onSuppliersLoaded);
+    connect(m_service, &ClientService::detailsLoaded, this, &SupplyDialog::onDetailsLoaded);
+    connect(m_service, &ClientService::priceChangesLoaded, this, &SupplyDialog::onPriceChangesLoaded);
+
+    m_service->fetchSuppliers();
+    m_service->fetchDetails();
+    m_service->fetchPriceChanges();
 }
 
 SupplyDialog::~SupplyDialog() { delete ui; }
 
-QDate SupplyDialog::supplyDate() const { return ui->dateEdit->date(); }
-int SupplyDialog::quantity() const { return ui->spinQuantity->value(); }
-int SupplyDialog::selectedSupplierId() const { return ui->comboSupplier->currentData().toInt(); }
-int SupplyDialog::selectedDetailId() const { return ui->comboDetail->currentData().toInt(); }
-int SupplyDialog::selectedPriceChangeId() const { return m_autoPriceChangeId; }
+void SupplyDialog::onSuppliersLoaded(const QList<SupplierData>& suppliers)
+{
+    m_suppliers = suppliers;
+    for (const auto& s : m_suppliers)
+        ui->comboSupplier->addItem(s.name, s.id);
+    checkDataReady();
+}
 
-void SupplyDialog::setSupplyDate(const QDate &date) { ui->dateEdit->setDate(date); }
-void SupplyDialog::setQuantity(int qty) { ui->spinQuantity->setValue(qty); }
+void SupplyDialog::onDetailsLoaded(const QList<DetailData>& details)
+{
+    m_details = details;
+    checkDataReady();
+}
+
+void SupplyDialog::onPriceChangesLoaded(const QList<PriceChangeData>& changes)
+{
+    m_priceChanges = changes;
+    checkDataReady();
+}
+
+void SupplyDialog::checkDataReady()
+{
+    if (!m_suppliers.isEmpty() && !m_details.isEmpty() && !m_priceChanges.isEmpty()) {
+        m_dataReady = true;
+        ui->comboSupplier->setEnabled(true);
+    }
+}
 
 void SupplyDialog::onSupplierChanged(int /*index*/)
 {
+    if (!m_dataReady) return;
     ui->comboDetail->setEnabled(true);
     ui->dateEdit->setEnabled(true);
     ui->spinQuantity->setEnabled(true);
@@ -66,17 +89,16 @@ void SupplyDialog::updateDetailCombo()
     if (supplierId <= 0) return;
 
     QSet<int> detailIds;
-    for (const auto &pc : m_data.priceChanges) {
+    for (const auto& pc : m_priceChanges) {
         if (pc.supplierId == supplierId)
             detailIds.insert(pc.detailId);
     }
-    for (const auto &d : m_data.details) {
+    for (const auto& d : m_details) {
         if (detailIds.contains(d.id)) {
             ui->comboDetail->addItem(QString("%1 (%2)").arg(d.article, d.name), d.id);
         }
     }
     ui->comboDetail->setCurrentIndex(-1);
-    // Сброс цены
     ui->labelPrice->setText("Цена за единицу (авто): не определена");
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(false);
     m_autoPriceChangeId = 0;
@@ -95,13 +117,10 @@ void SupplyDialog::tryAutoSelectPrice()
         return;
     }
 
-    QList<PriceChangeItem> candidates;
-    for (const auto &pc : m_data.priceChanges) {
-        if (pc.detailId == detailId && pc.supplierId == supplierId) {
-            QDate pcDate = QDate::fromString(pc.date, Qt::ISODate);
-            if (pcDate <= date)
-                candidates.append(pc);
-        }
+    QList<PriceChangeData> candidates;
+    for (const auto& pc : m_priceChanges) {
+        if (pc.detailId == detailId && pc.supplierId == supplierId && pc.changeDate <= date)
+            candidates.append(pc);
     }
     if (candidates.isEmpty()) {
         ui->labelPrice->setText("Цена за единицу (авто): нет подходящего изменения");
@@ -110,16 +129,14 @@ void SupplyDialog::tryAutoSelectPrice()
         return;
     }
 
-    std::sort(candidates.begin(), candidates.end(), [](const PriceChangeItem &a, const PriceChangeItem &b) {
-        QDate da = QDate::fromString(a.date, Qt::ISODate);
-        QDate db = QDate::fromString(b.date, Qt::ISODate);
-        if (da != db) return da > db;
+    std::sort(candidates.begin(), candidates.end(), [](const PriceChangeData& a, const PriceChangeData& b) {
+        if (a.changeDate != b.changeDate) return a.changeDate > b.changeDate;
         return a.id > b.id;
     });
 
-    const PriceChangeItem &latest = candidates.first();
+    const PriceChangeData& latest = candidates.first();
     ui->labelPrice->setText(QString("Цена за единицу (авто): %1 (изменение от %2)")
-                                .arg(QString::number(latest.price, 'f', 2), latest.date));
+                                .arg(QString::number(latest.price, 'f', 2), latest.changeDate.toString(Qt::ISODate)));
     m_autoPriceChangeId = latest.id;
     ui->buttonBox->button(QDialogButtonBox::Ok)->setEnabled(true);
 }
@@ -138,6 +155,13 @@ void SupplyDialog::onAccept()
         QMessageBox::warning(this, "Ошибка", "Количество должно быть больше 0!");
         return;
     }
-    // supplier_id не сохраняется – связь с поставщиком через price_change_id
     accept();
 }
+
+QDate SupplyDialog::supplyDate() const { return ui->dateEdit->date(); }
+int SupplyDialog::quantity() const { return ui->spinQuantity->value(); }
+int SupplyDialog::selectedSupplierId() const { return ui->comboSupplier->currentData().toInt(); }
+int SupplyDialog::selectedDetailId() const { return ui->comboDetail->currentData().toInt(); }
+int SupplyDialog::selectedPriceChangeId() const { return m_autoPriceChangeId; }
+void SupplyDialog::setSupplyDate(const QDate& date) { ui->dateEdit->setDate(date); }
+void SupplyDialog::setQuantity(int qty) { ui->spinQuantity->setValue(qty); }

@@ -5,11 +5,10 @@
 #include <QTableWidget>
 #include <QLineEdit>
 #include <QTimer>
-#include <QList>
 #include <QPushButton>
 #include "TcpClient/tcpclient.h"
-#include "Utils/sessionmanager.h"
-#include "Utils/datatypes.h"
+#include "Services/ClientService.h"
+#include "Services/sessionmanager.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -19,16 +18,13 @@ class MainWindow : public QMainWindow
 {
     Q_OBJECT
 public:
-    explicit MainWindow(TcpClient *client, QWidget *parent = nullptr);
+    explicit MainWindow(TcpClient* client, QWidget *parent = nullptr);
     ~MainWindow();
 
 private slots:
-    void onServerResponse(quint32 id, const QString &response);
-    void onPeriodicRefresh();
-    void addCommonTabs();
-
     void onProfile();
     void onLogout();
+    void onPeriodicRefresh();
 
     // Пользователи
     void onAddUser();
@@ -65,57 +61,53 @@ private slots:
     void refreshPriceHistoryTable();
     void refreshCurrentPricesTable();
 
+    // Слоты обновления из сервиса
+    void updateUsersTable(const QList<UserData>& users);
+    void updateSuppliersTable(const QList<SupplierData>& suppliers);
+    void updateDetailsTable(const QList<DetailData>& details);
+    void updatePriceChangesTable(const QList<PriceChangeData>& changes);
+    void updateSuppliesTable(const QList<SupplyData>& supplies);
+    void updateCurrentPricesTable(const QList<CurrentPriceData>& prices);
+    void updatePriceHistoryTable(const QList<PriceHistoryData>& history);
+    void updateAccountingTable(const QList<AccountingData>& accounting);
+
+    void onOperationSuccess(quint32 requestId, const QString& message);
+    void onOperationError(quint32 requestId, const QString& error);
+
 private:
-    void setupUiForRole(const QString &role);
+    void setupUiForRole(const QString& role);
+    void addCommonTabs();
     void addAdminTabs();
     void addManagerTabs();
     void addAccountantTabs();
-    void applyFilter(QTableWidget *table, const QString &text);
+    void applyFilter(QTableWidget* table, const QString& text);
 
-    Ui::MainWindow *ui;
-    TcpClient *m_client;
+    Ui::MainWindow* ui;
+    TcpClient* m_client;
+    ClientService* m_clientService;
+    QTimer* m_updateTimer;
 
-    QTimer *m_updateTimer;
-
-    QTableWidget *m_priceHistoryTable = nullptr;
-    QLineEdit *m_searchPriceHistory = nullptr;
-
-    QTableWidget *m_currentPricesTable = nullptr;
-    QLineEdit *m_searchCurrentPrices = nullptr;
-    quint32 m_pendingCurrentPricesId = 0;
-
-    QPushButton *m_profileButton = nullptr;
-    QPushButton *m_logoutButton = nullptr;
+    QPushButton* m_profileButton = nullptr;
+    QPushButton* m_logoutButton = nullptr;
 
     // Таблицы
-    QTableWidget *m_usersTable = nullptr;
-    QTableWidget *m_suppliersTable = nullptr;
-    QTableWidget *m_detailsTable = nullptr;
-    QTableWidget *m_priceChangesTable = nullptr;
-    QTableWidget *m_suppliesTable = nullptr;
-    QTableWidget *m_accountingTable = nullptr;
+    QTableWidget* m_usersTable = nullptr;
+    QTableWidget* m_suppliersTable = nullptr;
+    QTableWidget* m_detailsTable = nullptr;
+    QTableWidget* m_priceChangesTable = nullptr;
+    QTableWidget* m_suppliesTable = nullptr;
+    QTableWidget* m_accountingTable = nullptr;
+    QTableWidget* m_priceHistoryTable = nullptr;
+    QTableWidget* m_currentPricesTable = nullptr;
 
     // Поля поиска
-    QLineEdit *m_searchSuppliers = nullptr;
-    QLineEdit *m_searchDetails = nullptr;
-    QLineEdit *m_searchPriceChanges = nullptr;
-    QLineEdit *m_searchSupplies = nullptr;
-    QLineEdit *m_accountingSearch = nullptr;
-
-    // Кеш справочных данных
-    QList<DetailItem> m_detailItems;
-    QList<SupplierItem> m_supplierItems;
-    QList<PriceChangeItem> m_priceChangeItems;   // для отображения в таблице и выбора в поставке
-
-    // Идентификаторы запросов
-    quint32 m_pendingUsersId = 0;
-    quint32 m_pendingSuppliersId = 0;
-    quint32 m_pendingDetailsId = 0;
-    quint32 m_pendingPriceChangesId = 0;
-    quint32 m_pendingSuppliesId = 0;
-    quint32 m_pendingPriceHistoryId = 0;
-    quint32 m_pendingAccountingId = 0;
-    quint32 m_pendingGenericId = 0;
+    QLineEdit* m_searchSuppliers = nullptr;
+    QLineEdit* m_searchDetails = nullptr;
+    QLineEdit* m_searchPriceChanges = nullptr;
+    QLineEdit* m_searchSupplies = nullptr;
+    QLineEdit* m_accountingSearch = nullptr;
+    QLineEdit* m_searchPriceHistory = nullptr;
+    QLineEdit* m_searchCurrentPrices = nullptr;
 };
 
 #endif // MAINWINDOW_H

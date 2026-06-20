@@ -5,6 +5,8 @@ TEMPLATE = app
 OBJECTS_DIR = obj_client
 
 SOURCES += \
+    Services/ClientService.cpp \
+    Services/sessionmanager.cpp \
     View/detaildialog.cpp \
     View/pricechangedialog.cpp \
     View/profiledialog.cpp \
@@ -15,11 +17,11 @@ SOURCES += \
     View/registerdialog.cpp \
     View/supplierdialog.cpp \
     View/userdialog.cpp \
-    TcpClient/tcpclient.cpp \
-    Utils/sessionmanager.cpp
+    TcpClient/tcpclient.cpp
 
 HEADERS += \
-    Utils/datatypes.h \
+    Services/ClientService.h \
+    Services/sessionmanager.h \
     View/detaildialog.h \
     View/logindialog.h \
     View/mainwindow.h \
@@ -29,8 +31,7 @@ HEADERS += \
     View/supplierdialog.h \
     View/supplydialog.h \
     View/userdialog.h \
-    TcpClient/tcpclient.h \
-    Utils/sessionmanager.h
+    TcpClient/tcpclient.h
 
 FORMS += \
     View/detaildialog.ui \
@@ -43,4 +44,4 @@ FORMS += \
     View/supplydialog.ui \
     View/userdialog.ui
 
-INCLUDEPATH += . View TcpClient Utils
+INCLUDEPATH += . View TcpClient Services
