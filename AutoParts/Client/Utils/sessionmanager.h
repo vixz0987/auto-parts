@@ -32,3 +32,4 @@ private:
 };
 
 #endif // SESSIONMANAGER_H
+

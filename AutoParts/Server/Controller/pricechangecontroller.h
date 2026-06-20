@@ -1,0 +1,17 @@
+#ifndef PRICECHANGECONTROLLER_H
+#define PRICECHANGECONTROLLER_H
+
+#include <QList>
+#include <QDate>
+class PriceChange;
+
+class PriceChangeController
+{
+public:
+    static QList<PriceChange*> getAllPriceChanges();
+    static bool addPriceChange(int detailId, const QDate &changeDate, double price, int supplierId);
+    static bool updatePriceChange(int priceChangeId, int detailId, const QDate &changeDate, double price, int supplierId);
+    static bool deletePriceChange(int priceChangeId);
+};
+
+#endif

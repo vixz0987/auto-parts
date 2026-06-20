@@ -203,6 +203,7 @@ bool User::activateUser(const QString &login, const QString &fio,
     return true;
 }
 
+
 // создание пользователя администратором (без пароля)
 bool User::createUser(const QString &login, const QString &fio,
                       const QString &role)
@@ -322,4 +323,40 @@ bool User::isPasswordValid(const QString &password)
 {
     QRegularExpression re("^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,}$");
     return re.match(password).hasMatch();
+}
+
+bool User::changePassword(int userId, const QString &oldPassword, const QString &newPassword)
+{
+    if (!isPasswordValid(newPassword))
+        return false;
+
+    User *user = loadById(userId);
+    if (!user) return false;
+
+    // Проверяем старый пароль
+    QString storedHash = user->passwordHash();
+    if (storedHash.isEmpty() || !verifyPassword(oldPassword, storedHash)) {
+        delete user;
+        return false;
+    }
+
+    // Генерируем новый хэш
+    QString newHash = generatePasswordHash(newPassword);
+    user->setPasswordHash(newHash);
+    bool ok = user->update();
+    delete user;
+    return ok;
+}
+
+bool User::changeFio(int userId, const QString &newFio)
+{
+    if (newFio.trimmed().isEmpty()) return false;
+
+    User *user = loadById(userId);
+    if (!user) return false;
+
+    user->setFio(newFio.trimmed());
+    bool ok = user->update();
+    delete user;
+    return ok;
 }

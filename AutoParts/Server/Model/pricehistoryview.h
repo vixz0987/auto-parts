@@ -9,14 +9,15 @@
 class PriceHistoryView : public QObject
 {
     Q_OBJECT
-
 public:
     explicit PriceHistoryView(QObject *parent = nullptr);
     PriceHistoryView(const QString &article, const QString &detailName,
+                     const QString &supplierName,
                      const QDate &changeDate, double price);
 
     QString article() const;
     QString detailName() const;
+    QString supplierName() const;
     QDate changeDate() const;
     double price() const;
 
@@ -25,6 +26,7 @@ public:
 private:
     QString m_article;
     QString m_detailName;
+    QString m_supplierName;
     QDate m_changeDate;
     double m_price;
 };

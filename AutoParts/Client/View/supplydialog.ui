@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SupplyDialog</class>
+ <widget class="QDialog" name="SupplyDialog">
+  <property name="geometry">
+   <rect><x>0</x><y>0</y><width>420</width><height>340</height></rect>
+  </property>
+  <property name="windowTitle"><string>Новая поставка</string></property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="labelSupplier"><property name="text"><string>1. Поставщик:</string></property></widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="comboSupplier"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelDetail"><property name="text"><string>2. Деталь (только с изменениями цен этого поставщика):</string></property></widget>
+   </item>
+   <item>
+    <widget class="QComboBox" name="comboDetail"/>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelDate"><property name="text"><string>3. Дата поставки:</string></property></widget>
+   </item>
+   <item>
+    <widget class="QDateEdit" name="dateEdit">
+     <property name="calendarPopup"><bool>true</bool></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelPrice">
+     <property name="text"><string>Цена за единицу (авто): не определена</string></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QLabel" name="labelQuantityText"><property name="text"><string>4. Количество:</string></property></widget>
+   </item>
+   <item>
+    <widget class="QSpinBox" name="spinQuantity">
+     <property name="minimum"><number>1</number></property>
+     <property name="maximum"><number>999999</number></property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="standardButtons"><set>QDialogButtonBox::Ok|QDialogButtonBox::Cancel</set></property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

@@ -5,34 +5,38 @@
 #include <QDebug>
 
 PriceChange::PriceChange(QObject *parent)
-    : QObject(parent), m_priceChangeId(0), m_detailId(0), m_price(0.0)
+    : QObject(parent), m_priceChangeId(0), m_detailId(0), m_price(0.0), m_supplierId(0)
 {}
 
-PriceChange::PriceChange(int priceChangeId, int detailId,
-                         const QDate &changeDate, double price)
+PriceChange::PriceChange(int priceChangeId, int detailId, const QDate &changeDate,
+                         double price, int supplierId)
     : QObject(nullptr), m_priceChangeId(priceChangeId), m_detailId(detailId),
-    m_changeDate(changeDate), m_price(price)
+    m_changeDate(changeDate), m_price(price), m_supplierId(supplierId)
 {}
 
 int PriceChange::priceChangeId() const { return m_priceChangeId; }
 int PriceChange::detailId() const { return m_detailId; }
 QDate PriceChange::changeDate() const { return m_changeDate; }
 double PriceChange::price() const { return m_price; }
+int PriceChange::supplierId() const { return m_supplierId; }
 
 void PriceChange::setDetailId(int detailId) { m_detailId = detailId; }
 void PriceChange::setChangeDate(const QDate &changeDate) { m_changeDate = changeDate; }
 void PriceChange::setPrice(double price) { m_price = price; }
+void PriceChange::setSupplierId(int supplierId) { m_supplierId = supplierId; }
 
-// Сохранение нового изменения цены
 bool PriceChange::save()
 {
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
-    query.prepare("INSERT INTO auto_parts.price_changes (detail_id, change_date, price) "
-                  "VALUES (:detail_id, :change_date, :price) RETURNING price_change_id");
+    query.prepare("INSERT INTO auto_parts.price_changes "
+                  "(detail_id, change_date, price, supplier_id) "
+                  "VALUES (:detail_id, :change_date, :price, :supplier_id) "
+                  "RETURNING price_change_id");
     query.bindValue(":detail_id", m_detailId);
     query.bindValue(":change_date", m_changeDate);
     query.bindValue(":price", m_price);
+    query.bindValue(":supplier_id", m_supplierId);
 
     if (!query.exec() || !query.next()) {
         qDebug() << "Ошибка сохранения изменения цены:" << query.lastError().text();
@@ -42,18 +46,18 @@ bool PriceChange::save()
     return true;
 }
 
-// Обновление изменения цены
 bool PriceChange::update()
 {
     if (m_priceChangeId == 0) return false;
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
     query.prepare("UPDATE auto_parts.price_changes SET detail_id = :detail_id, "
-                  "change_date = :change_date, price = :price "
+                  "change_date = :change_date, price = :price, supplier_id = :supplier_id "
                   "WHERE price_change_id = :id");
     query.bindValue(":detail_id", m_detailId);
     query.bindValue(":change_date", m_changeDate);
     query.bindValue(":price", m_price);
+    query.bindValue(":supplier_id", m_supplierId);
     query.bindValue(":id", m_priceChangeId);
 
     if (!query.exec()) {
@@ -63,7 +67,6 @@ bool PriceChange::update()
     return true;
 }
 
-// Удаление изменения цены
 bool PriceChange::remove()
 {
     if (m_priceChangeId == 0) return false;
@@ -71,7 +74,6 @@ bool PriceChange::remove()
     QSqlQuery query(db);
     query.prepare("DELETE FROM auto_parts.price_changes WHERE price_change_id = :id");
     query.bindValue(":id", m_priceChangeId);
-
     if (!query.exec()) {
         qDebug() << "Ошибка удаления изменения цены:" << query.lastError().text();
         return false;
@@ -79,46 +81,44 @@ bool PriceChange::remove()
     return true;
 }
 
-// Загрузка изменения цены по идентификатору
 PriceChange* PriceChange::loadById(int priceChangeId)
 {
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
-    query.prepare("SELECT price_change_id, detail_id, change_date, price "
+    query.prepare("SELECT price_change_id, detail_id, change_date, price, supplier_id "
                   "FROM auto_parts.price_changes WHERE price_change_id = :id");
     query.bindValue(":id", priceChangeId);
-    if (!query.exec() || !query.next())
-        return nullptr;
+    if (!query.exec() || !query.next()) return nullptr;
     return new PriceChange(query.value("price_change_id").toInt(),
                            query.value("detail_id").toInt(),
                            query.value("change_date").toDate(),
-                           query.value("price").toDouble());
+                           query.value("price").toDouble(),
+                           query.value("supplier_id").toInt());
 }
 
-// Загрузка всех изменений цен
 QList<PriceChange*> PriceChange::loadAll()
 {
     QList<PriceChange*> list;
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
-    query.exec("SELECT price_change_id, detail_id, change_date, price "
+    query.exec("SELECT price_change_id, detail_id, change_date, price, supplier_id "
                "FROM auto_parts.price_changes ORDER BY change_date DESC");
     while (query.next()) {
         list.append(new PriceChange(query.value("price_change_id").toInt(),
                                     query.value("detail_id").toInt(),
                                     query.value("change_date").toDate(),
-                                    query.value("price").toDouble()));
+                                    query.value("price").toDouble(),
+                                    query.value("supplier_id").toInt()));
     }
     return list;
 }
 
-// Загрузка всех изменений цен для конкретной детали
 QList<PriceChange*> PriceChange::loadByDetail(int detailId)
 {
     QList<PriceChange*> list;
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
-    query.prepare("SELECT price_change_id, detail_id, change_date, price "
+    query.prepare("SELECT price_change_id, detail_id, change_date, price, supplier_id "
                   "FROM auto_parts.price_changes WHERE detail_id = :detail_id "
                   "ORDER BY change_date DESC");
     query.bindValue(":detail_id", detailId);
@@ -127,7 +127,8 @@ QList<PriceChange*> PriceChange::loadByDetail(int detailId)
         list.append(new PriceChange(query.value("price_change_id").toInt(),
                                     query.value("detail_id").toInt(),
                                     query.value("change_date").toDate(),
-                                    query.value("price").toDouble()));
+                                    query.value("price").toDouble(),
+                                    query.value("supplier_id").toInt()));
     }
     return list;
 }

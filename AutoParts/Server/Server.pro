@@ -5,13 +5,16 @@ TEMPLATE = app
 OBJECTS_DIR = obj_server
 
 SOURCES += \
+    Controller/detailcontroller.cpp \
+    Controller/pricechangecontroller.cpp \
+    Controller/supplycontroller.cpp \
+    Model/currentpriceview.cpp \
     main.cpp \
     Model/accountingview.cpp \
     Model/detail.cpp \
     Model/pricechange.cpp \
     Model/pricehistoryview.cpp \
     Model/supplier.cpp \
-    Model/supplierpricechange.cpp \
     Model/supply.cpp \
     Model/supplyview.cpp \
     Model/user.cpp \
@@ -23,12 +26,15 @@ SOURCES += \
     TcpServer/tcpserver.cpp
 
 HEADERS += \
+    Controller/detailcontroller.h \
+    Controller/pricechangecontroller.h \
+    Controller/supplycontroller.h \
     Model/accountingview.h \
+    Model/currentpriceview.h \
     Model/detail.h \
     Model/pricechange.h \
     Model/pricehistoryview.h \
     Model/supplier.h \
-    Model/supplierpricechange.h \
     Model/supply.h \
     Model/supplyview.h \
     Model/user.h \
