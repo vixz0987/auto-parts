@@ -2,8 +2,6 @@
 #define SUPPLYDIALOG_H
 
 #include <QDialog>
-#include <QList>
-#include <QDate>
 #include "Utils/datatypes.h"
 
 namespace Ui { class SupplyDialog; }
@@ -18,18 +16,23 @@ public:
     QDate supplyDate() const;
     int quantity() const;
     int selectedSupplierId() const;
-    int selectedPriceChangeId() const;
+    int selectedDetailId() const;
+    int selectedPriceChangeId() const;   // вычисленный ID изменения цены
 
     void setSupplyDate(const QDate &date);
     void setQuantity(int qty);
-    void setSupplierId(int id);
-    void setPriceChangeId(int id);
 
 private slots:
     void onAccept();
+    void onSupplierChanged(int index);
+    void onDetailChanged(int index);
 
 private:
+    void updateDetailCombo();             // фильтрует детали по выбранному поставщику
+    void tryAutoSelectPrice();            // подбирает цену
     Ui::SupplyDialog *ui;
+    SupplyDialogData m_data;
+    int m_autoPriceChangeId = 0;
 };
 
 #endif // SUPPLYDIALOG_H

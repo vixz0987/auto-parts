@@ -31,3 +31,4 @@ bool DetailController::deleteDetail(int detailId) {
     delete d;
     return ok;
 }
+

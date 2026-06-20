@@ -35,3 +35,14 @@ QList<UserInfoView*> UserController::getAllUsers()
 {
     return UserInfoView::loadAll();
 }
+
+// Изменение данных
+bool UserController::changePassword(int userId, const QString &oldPassword, const QString &newPassword)
+{
+    return User::changePassword(userId, oldPassword, newPassword);
+}
+
+bool UserController::changeFio(int userId, const QString &newFio)
+{
+    return User::changeFio(userId, newFio);
+}

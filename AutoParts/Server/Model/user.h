@@ -42,6 +42,12 @@ public:
     static bool createUser(const QString &login, const QString &fio,
                            const QString &role);
 
+    // смена пароля(требуется старый пароль)
+    static bool changePassword(int userId, const QString &oldPassword, const QString &newPassword);
+
+    // смена ФИО
+    static bool changeFio(int userId, const QString &newFio);
+
     bool save(); // вставка новой записи
     bool update(); // обновление текущей
     bool remove(); // удаление записи из БД

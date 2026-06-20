@@ -7,6 +7,7 @@ OBJECTS_DIR = obj_client
 SOURCES += \
     View/detaildialog.cpp \
     View/pricechangedialog.cpp \
+    View/profiledialog.cpp \
     View/supplydialog.cpp \
     main.cpp \
     View/logindialog.cpp \
@@ -23,6 +24,7 @@ HEADERS += \
     View/logindialog.h \
     View/mainwindow.h \
     View/pricechangedialog.h \
+    View/profiledialog.h \
     View/registerdialog.h \
     View/supplierdialog.h \
     View/supplydialog.h \
@@ -35,6 +37,7 @@ FORMS += \
     View/logindialog.ui \
     View/mainwindow.ui \
     View/pricechangedialog.ui \
+    View/profiledialog.ui \
     View/registerdialog.ui \
     View/supplierdialog.ui \
     View/supplydialog.ui \

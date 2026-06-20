@@ -23,6 +23,10 @@ public:
 
     // Получение списка всех пользователей (read-only, без паролей)
     static QList<UserInfoView*> getAllUsers();
+
+    // Смена пароля и личных данных
+    static bool changePassword(int userId, const QString &oldPassword, const QString &newPassword);
+    static bool changeFio(int userId, const QString &newFio);
 };
 
 #endif // USERCONTROLLER_H

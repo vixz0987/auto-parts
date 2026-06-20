@@ -6,6 +6,7 @@
 #include "detaildialog.h"
 #include "pricechangedialog.h"
 #include "supplydialog.h"
+#include "profiledialog.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QTabWidget>
@@ -33,17 +34,104 @@ MainWindow::MainWindow(TcpClient *client, QWidget *parent)
         return;
     }
 
+    // Создаём кнопки
+    m_profileButton = new QPushButton("Профиль", this);
+    m_logoutButton = new QPushButton("Выйти", this);
+
+    // Настраиваем размер (опционально)
+    m_profileButton->setFixedSize(80, 25);
+    m_logoutButton->setFixedSize(80, 25);
+
+    // Подключаем сигналы
+    connect(m_profileButton, &QPushButton::clicked, this, &MainWindow::onProfile);
+    connect(m_logoutButton, &QPushButton::clicked, this, &MainWindow::onLogout);
+
+    // Размещаем кнопки в статусбаре (справа)
+    ui->statusbar->addPermanentWidget(m_profileButton);
+    ui->statusbar->addPermanentWidget(m_logoutButton);
+
     ui->statusbar->showMessage(QString("User: %1 (%2)").arg(user.fio, user.role));
     connect(m_client, &TcpClient::responseReceived, this, &MainWindow::onServerResponse);
     setupUiForRole(user.role);
+
+    ui->statusbar->addPermanentWidget(m_profileButton);
+    ui->statusbar->addPermanentWidget(m_logoutButton);
+
+    // Настройка периодического обновления
+    m_updateTimer = new QTimer(this);
+    connect(m_updateTimer, &QTimer::timeout, this, &MainWindow::onPeriodicRefresh);
+    m_updateTimer->start(5000);  // каждые 5 секунд
+}
+
+// Новый слот: обновляет все доступные таблицы
+void MainWindow::onPeriodicRefresh()
+{
+    // Обновляем только те таблицы, которые существуют (не nullptr)
+    if (m_usersTable)          refreshUsersTable();
+    if (m_suppliersTable)      refreshSuppliersTable();
+    if (m_detailsTable)        refreshDetailsTable();
+    if (m_priceChangesTable)   refreshPriceChangesTable();
+    if (m_suppliesTable)       refreshSuppliesTable();
+    if (m_accountingTable)     refreshAccountingTable();
+    if (m_priceHistoryTable)   refreshPriceHistoryTable();
+    if (m_currentPricesTable)  refreshCurrentPricesTable();
 }
 
 MainWindow::~MainWindow() { delete ui; }
+
+void MainWindow::onProfile()
+{
+    UserInfo user = SessionManager::instance()->currentUser();
+    ProfileDialog dlg(m_client, user.id, this);
+    if (dlg.exec() == QDialog::Accepted) {
+        // После успешного сохранения данных в профиле можно обновить статусбар
+        UserInfo updatedUser = SessionManager::instance()->currentUser();
+        ui->statusbar->showMessage(QString("User: %1 (%2)").arg(updatedUser.fio, updatedUser.role));
+    }
+}
+
+void MainWindow::onLogout()
+{
+    SessionManager::instance()->logout();
+    // Закрываем главное окно
+    this->close();
+    QApplication::quit();
+
+}
+
+void MainWindow::addCommonTabs()
+{
+    // Текущие цены
+    QWidget *priceTab = new QWidget();
+    QVBoxLayout *priceLayout = new QVBoxLayout(priceTab);
+
+    m_currentPricesTable = new QTableWidget(this);
+    m_currentPricesTable->setColumnCount(6);
+    m_currentPricesTable->setHorizontalHeaderLabels({"Артикул", "Деталь", "Цена", "Дата изменения", "Поставщик", "ID поставщика"});
+    m_currentPricesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_currentPricesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_currentPricesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_currentPricesTable->setWordWrap(true);
+    m_currentPricesTable->resizeColumnsToContents();
+    m_currentPricesTable->resizeRowsToContents();
+    priceLayout->addWidget(m_currentPricesTable);
+
+    m_searchCurrentPrices = new QLineEdit();
+    m_searchCurrentPrices->setPlaceholderText("Поиск по текущим ценам...");
+    priceLayout->insertWidget(0, m_searchCurrentPrices);
+    connect(m_searchCurrentPrices, &QLineEdit::textChanged, this, [this](const QString &text) {
+        applyFilter(m_currentPricesTable, text);
+    });
+
+    ui->tabWidgetMain->addTab(priceTab, "Текущие цены");
+    refreshCurrentPricesTable();
+}
 
 // Распределение вкладок по ролям
 void MainWindow::setupUiForRole(const QString &role)
 {
     ui->tabWidgetMain->clear();
+    addCommonTabs();
 
     if (role == "admin") {
         addAdminTabs();
@@ -67,6 +155,9 @@ void MainWindow::addAdminTabs()
     m_usersTable->setColumnCount(4);
     m_usersTable->setHorizontalHeaderLabels({"ID", "Логин", "ФИО", "Роль"});
     m_usersTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_usersTable->resizeColumnsToContents();
+    m_usersTable->resizeRowsToContents();
+    m_usersTable->setWordWrap(true);
     m_usersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_usersTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_usersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -104,6 +195,9 @@ void MainWindow::addManagerTabs()
     m_detailsTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_detailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_detailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_detailsTable->resizeColumnsToContents();
+    m_detailsTable->resizeRowsToContents();
+    m_detailsTable->setWordWrap(true);
     detailsLayout->addWidget(m_detailsTable);
 
     m_searchDetails = new QLineEdit(); m_searchDetails->setPlaceholderText("Поиск деталей...");
@@ -132,11 +226,14 @@ void MainWindow::addManagerTabs()
     QVBoxLayout *pcLayout = new QVBoxLayout(pcTab);
 
     m_priceChangesTable = new QTableWidget(this);
-    m_priceChangesTable->setColumnCount(4);
-    m_priceChangesTable->setHorizontalHeaderLabels({"ID", "Артикул", "Дата изменения", "Цена"});
+    m_priceChangesTable->setColumnCount(6);
+    m_priceChangesTable->setHorizontalHeaderLabels({"ID", "Артикул", "Деталь", "Поставщик", "Дата изм.", "Цена"});
     m_priceChangesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_priceChangesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_priceChangesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_priceChangesTable->resizeColumnsToContents();
+    m_priceChangesTable->resizeRowsToContents();
+    m_priceChangesTable->setWordWrap(true);
     pcLayout->addWidget(m_priceChangesTable);
 
     m_searchPriceChanges = new QLineEdit(); m_searchPriceChanges->setPlaceholderText("Поиск изменения...");
@@ -170,6 +267,9 @@ void MainWindow::addManagerTabs()
     m_suppliesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_suppliesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_suppliesTable->resizeColumnsToContents();
+    m_suppliesTable->resizeRowsToContents();
+    m_suppliesTable->setWordWrap(true);
     supLayout->addWidget(m_suppliesTable);
 
     m_searchSupplies = new QLineEdit(); m_searchSupplies->setPlaceholderText("Поиск поставок...");
@@ -203,6 +303,7 @@ void MainWindow::addManagerTabs()
     m_suppliersTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_suppliersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_suppliersTable->setWordWrap(true);
     suppliersLayout->addWidget(m_suppliersTable);
 
     m_searchSuppliers = new QLineEdit(); m_searchSuppliers->setPlaceholderText("Поиск поставщиков...");
@@ -233,26 +334,55 @@ void MainWindow::addAccountantTabs()
     // Бухгалтерский отчёт
     QWidget *accTab = new QWidget();
     QVBoxLayout *accLayout = new QVBoxLayout(accTab);
+
+    m_accountingSearch = new QLineEdit();            // поле поиска
+    m_accountingSearch->setPlaceholderText("Поиск...");
+    accLayout->addWidget(m_accountingSearch);
+
     m_accountingTable = new QTableWidget(this);
     m_accountingTable->setColumnCount(7);
     m_accountingTable->setHorizontalHeaderLabels({"Дата поставки", "Поставщик", "Артикул", "Деталь", "Кол-во", "Цена", "Сумма"});
     m_accountingTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    m_accountingTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     m_accountingTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    m_accountingTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_accountingTable->setWordWrap(true);
+    m_accountingTable->verticalHeader()->setVisible(false);
+    m_accountingTable->setWordWrap(true);
     accLayout->addWidget(m_accountingTable);
+
+    connect(m_accountingSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
+        applyFilter(m_accountingTable, text);
+    });
+
     ui->tabWidgetMain->addTab(accTab, "Бухгалтерский отчет");
     refreshAccountingTable();
 
     // История цен
-    QWidget *priceTab = new QWidget();
-    QVBoxLayout *priceLayout = new QVBoxLayout(priceTab);
+    QWidget *priceHistoryTab = new QWidget();
+    QVBoxLayout *phLayout = new QVBoxLayout(priceHistoryTab);
+
     m_priceHistoryTable = new QTableWidget(this);
-    m_priceHistoryTable->setColumnCount(4);
-    m_priceHistoryTable->setHorizontalHeaderLabels({"Артикул", "Деталь", "Дата изменения", "Цена"});
+    m_priceHistoryTable->setColumnCount(5);
+    m_priceHistoryTable->setHorizontalHeaderLabels({"Артикул", "Деталь", "Поставщик", "Дата изменения", "Цена"});
     m_priceHistoryTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_priceHistoryTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    priceLayout->addWidget(m_priceHistoryTable);
-    ui->tabWidgetMain->addTab(priceTab, "Изменения цен (см.)");
-    m_pendingPriceHistoryId = m_client->sendCommand("PRICEHISTORY");
+    m_priceHistoryTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_priceHistoryTable->setWordWrap(true);
+    m_priceHistoryTable->resizeColumnsToContents();
+    m_priceHistoryTable->resizeRowsToContents();
+    phLayout->addWidget(m_priceHistoryTable);
+
+    m_searchPriceHistory = new QLineEdit();
+    m_searchPriceHistory->setPlaceholderText("Поиск в истории цен...");
+    phLayout->insertWidget(0, m_searchPriceHistory);
+    connect(m_searchPriceHistory, &QLineEdit::textChanged, this, [this](const QString &text) {
+        applyFilter(m_priceHistoryTable, text);
+    });
+
+    ui->tabWidgetMain->addTab(priceHistoryTab, "История цен");
+    refreshPriceHistoryTable();
+
 }
 
 // Вспомогательный фильтр для таблиц
@@ -311,9 +441,12 @@ void MainWindow::refreshDetailsTable() {
 
 // CRUD: Изменения цен
 void MainWindow::onAddPriceChange() {
-    // Списки деталей и поставщиков должны быть загружены
+    if (m_detailItems.isEmpty() && m_pendingDetailsId == 0)
+        refreshDetailsTable();
+    if (m_supplierItems.isEmpty() && m_pendingSuppliersId == 0)
+        refreshSuppliersTable();
     if (m_detailItems.isEmpty() || m_supplierItems.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Списки деталей и поставщиков еще не загружены. Пожалуйста, ожидайте.");
+        QMessageBox::information(this, "Подождите", "Данные ещё загружаются...");
         return;
     }
     PriceChangeDialog dlg(m_detailItems, m_supplierItems, this);
@@ -322,17 +455,17 @@ void MainWindow::onAddPriceChange() {
         obj["detail_id"] = dlg.selectedDetailId();
         obj["change_date"] = dlg.changeDate().toString(Qt::ISODate);
         obj["price"] = dlg.price();
-        QJsonArray suppIds;
-        for (int id : dlg.selectedSupplierIds()) suppIds.append(id);
-        obj["supplier_ids"] = suppIds;
-        m_pendingGenericId = m_client->sendCommand("ADD_PRICE_CHANGE " + QJsonDocument(obj).toJson(QJsonDocument::Compact));
+        obj["supplier_id"] = dlg.selectedSupplierId();
+        m_pendingGenericId = m_client->sendCommand("ADD_PRICE_CHANGE " +
+                                                   QJsonDocument(obj).toJson(QJsonDocument::Compact));
     }
 }
+
 void MainWindow::onEditPriceChange() {
     int row = m_priceChangesTable->currentRow();
     if (row < 0) { QMessageBox::warning(this, "Error", "Выберите изменение цены!"); return; }
     int id = m_priceChangesTable->item(row, 0)->text().toInt();
-    // Получаем ранее сохранённые данные: из m_priceChangeItems ищем текущий
+
     PriceChangeItem current;
     bool found = false;
     for (const auto &pci : m_priceChangeItems) {
@@ -348,16 +481,18 @@ void MainWindow::onEditPriceChange() {
     }
     PriceChangeDialog dlg(m_detailItems, m_supplierItems, this);
     dlg.setDetailId(current.detailId);
+    dlg.setSupplierId(current.supplierId);
     dlg.setChangeDate(QDate::fromString(current.date, Qt::ISODate));
     dlg.setPrice(current.price);
-    // Выбранные поставщики для этой записи загружаются отдельно, но можно оставить пустыми
     if (dlg.exec() == QDialog::Accepted) {
         QJsonObject obj;
         obj["id"] = id;
         obj["detail_id"] = dlg.selectedDetailId();
         obj["change_date"] = dlg.changeDate().toString(Qt::ISODate);
         obj["price"] = dlg.price();
-        m_pendingGenericId = m_client->sendCommand("UPD_PRICE_CHANGE " + QJsonDocument(obj).toJson(QJsonDocument::Compact));
+        obj["supplier_id"] = dlg.selectedSupplierId();
+        m_pendingGenericId = m_client->sendCommand("UPD_PRICE_CHANGE " +
+                                                   QJsonDocument(obj).toJson(QJsonDocument::Compact));
     }
 }
 void MainWindow::onDeletePriceChange() {
@@ -375,22 +510,22 @@ void MainWindow::refreshPriceChangesTable() {
 
 // CRUD: Поставки
 void MainWindow::onAddSupply() {
-    if (m_supplierItems.isEmpty() || m_priceChangeItems.isEmpty()) {
-        QMessageBox::warning(this, "Error", "Списки деталей/поставщиков еще не загружены. Пожалуйста ожидайте.");
+    if (m_supplierItems.isEmpty() && m_pendingSuppliersId == 0)
+        refreshSuppliersTable();
+    if (m_detailItems.isEmpty() && m_pendingDetailsId == 0)
+        refreshDetailsTable();
+    if (m_priceChangeItems.isEmpty() && m_pendingPriceChangesId == 0)
+        refreshPriceChangesTable();
+    if (m_supplierItems.isEmpty() || m_detailItems.isEmpty() || m_priceChangeItems.isEmpty()) {
+        QMessageBox::information(this, "Подождите", "Данные ещё загружаются...");
         return;
     }
+
     SupplyDialogData data;
-    for (const auto &s : m_supplierItems) data.suppliers.append({s.id, s.name});
-    for (const auto &pc : m_priceChangeItems) {
-        // Для отображения в комбобоксе: артикул + дата + цена
-        // Нужен артикул. Найдём деталь по detailId в m_detailItems
-        QString detailArt = "?";
-        for (const auto &d : m_detailItems) {
-            if (d.id == pc.detailId) { detailArt = d.article; break; }
-        }
-        QString desc = QString("%1 %2 %3").arg(detailArt, pc.date, QString::number(pc.price, 'f', 2));
-        data.priceChanges.append({pc.id, desc});
-    }
+    data.suppliers = m_supplierItems;
+    data.details = m_detailItems;
+    data.priceChanges = m_priceChangeItems;
+
     SupplyDialog dlg(data, this);
     if (dlg.exec() == QDialog::Accepted) {
         QJsonObject obj;
@@ -398,9 +533,11 @@ void MainWindow::onAddSupply() {
         obj["quantity"] = dlg.quantity();
         obj["supplier_id"] = dlg.selectedSupplierId();
         obj["price_change_id"] = dlg.selectedPriceChangeId();
-        m_pendingGenericId = m_client->sendCommand("ADDSUPPLY " + QJsonDocument(obj).toJson(QJsonDocument::Compact));
+        m_pendingGenericId = m_client->sendCommand("ADDSUPPLY " +
+                                                   QJsonDocument(obj).toJson(QJsonDocument::Compact));
     }
 }
+
 void MainWindow::onEditSupply() {
     int row = m_suppliesTable->currentRow();
     if (row < 0) { QMessageBox::warning(this, "Error", "Select a supply!"); return; }
@@ -502,16 +639,21 @@ void MainWindow::refreshSuppliersTable() {
 }
 
 // Обновление таблиц представлений
+void MainWindow::refreshAccountingTable() {
+    m_pendingAccountingId = m_client->sendCommand("ACCOUNTING");
+}
 void MainWindow::refreshPriceHistoryTable() {
     m_pendingPriceHistoryId = m_client->sendCommand("PRICEHISTORY");
 }
-void MainWindow::refreshAccountingTable() {
-    m_pendingAccountingId = m_client->sendCommand("ACCOUNTING");
+
+void MainWindow::refreshCurrentPricesTable() {
+    m_pendingCurrentPricesId = m_client->sendCommand("CURRENTPRICES");
 }
 
 // Централизованная обработка ответов сервера
 void MainWindow::onServerResponse(quint32 id, const QString &response)
 {
+    qDebug() << "=== GOT RESPONSE ===" << id << response.left(80);
     auto parseJsonArray = [&](const QString &) -> QJsonArray {
         int pos = response.indexOf('[');
         if (pos < 0) return QJsonArray();
@@ -547,6 +689,36 @@ void MainWindow::onServerResponse(quint32 id, const QString &response)
             m_suppliersTable->setItem(i, 3, new QTableWidgetItem(obj["address"].toString()));
             m_supplierItems.append({supId, name});
         }
+        m_suppliersTable->resizeRowsToContents();
+    }
+    // Обработка списка изменений цен (для таблицы менеджера)
+    else if (id == m_pendingPriceChangesId) {
+        m_pendingPriceChangesId = 0;
+        QJsonArray arr = parseJsonArray("PRICECHANGES");
+        m_priceChangesTable->setRowCount(arr.size());
+        m_priceChangeItems.clear();
+        for (int i = 0; i < arr.size(); ++i) {
+            QJsonObject obj = arr[i].toObject();
+            int pcId        = obj["id"].toInt();
+            int detailId    = obj["detail_id"].toInt();
+            int supplierId  = obj["supplier_id"].toInt();
+            QString date    = obj["change_date"].toString();
+            double price    = obj["price"].toDouble();
+            QString article = obj["article"].toString();
+            QString detail  = obj["detail_name"].toString();
+            QString supplier= obj["supplier_name"].toString();
+
+            m_priceChangesTable->setItem(i, 0, new QTableWidgetItem(QString::number(pcId)));
+            m_priceChangesTable->setItem(i, 1, new QTableWidgetItem(article));
+            m_priceChangesTable->setItem(i, 2, new QTableWidgetItem(detail));
+            m_priceChangesTable->setItem(i, 3, new QTableWidgetItem(supplier));
+            m_priceChangesTable->setItem(i, 4, new QTableWidgetItem(date));
+            m_priceChangesTable->setItem(i, 5, new QTableWidgetItem(QString::number(price, 'f', 2)));
+
+            // Кэш для поставок
+            m_priceChangeItems.append({pcId, detailId, supplierId, date, price});
+        }
+        m_priceChangesTable->resizeRowsToContents();
     }
     // Детали
     else if (id == m_pendingDetailsId) {
@@ -563,30 +735,6 @@ void MainWindow::onServerResponse(quint32 id, const QString &response)
             m_detailsTable->setItem(i, 1, new QTableWidgetItem(article));
             m_detailsTable->setItem(i, 2, new QTableWidgetItem(name));
             m_detailItems.append({detId, article, name});
-        }
-    }
-    // Изменения цен
-    else if (id == m_pendingPriceChangesId) {
-        m_pendingPriceChangesId = 0;
-        QJsonArray arr = parseJsonArray("PRICECHANGES");
-        m_priceChangesTable->setRowCount(arr.size());
-        m_priceChangeItems.clear();
-        for (int i = 0; i < arr.size(); ++i) {
-            QJsonObject obj = arr[i].toObject();
-            int pcId = obj["id"].toInt();
-            int detailId = obj["detail_id"].toInt();
-            QString date = obj["change_date"].toString();
-            double price = obj["price"].toDouble();
-            // Для отображения артикула ищем в кеше деталей
-            QString art = "?";
-            for (const auto &d : m_detailItems) {
-                if (d.id == detailId) { art = d.article; break; }
-            }
-            m_priceChangesTable->setItem(i, 0, new QTableWidgetItem(QString::number(pcId)));
-            m_priceChangesTable->setItem(i, 1, new QTableWidgetItem(art));
-            m_priceChangesTable->setItem(i, 2, new QTableWidgetItem(date));
-            m_priceChangesTable->setItem(i, 3, new QTableWidgetItem(QString::number(price, 'f', 2)));
-            m_priceChangeItems.append({pcId, detailId, date, price});
         }
     }
     // Поставки
@@ -606,19 +754,6 @@ void MainWindow::onServerResponse(quint32 id, const QString &response)
             m_suppliesTable->setItem(i, 7, new QTableWidgetItem(QString::number(obj["total_amount"].toDouble(), 'f', 2)));
         }
     }
-    // История цен
-    else if (id == m_pendingPriceHistoryId) {
-        m_pendingPriceHistoryId = 0;
-        QJsonArray arr = parseJsonArray("PRICEHISTORY");
-        m_priceHistoryTable->setRowCount(arr.size());
-        for (int i = 0; i < arr.size(); ++i) {
-            QJsonObject obj = arr[i].toObject();
-            m_priceHistoryTable->setItem(i, 0, new QTableWidgetItem(obj["article"].toString()));
-            m_priceHistoryTable->setItem(i, 1, new QTableWidgetItem(obj["detail_name"].toString()));
-            m_priceHistoryTable->setItem(i, 2, new QTableWidgetItem(obj["change_date"].toString()));
-            m_priceHistoryTable->setItem(i, 3, new QTableWidgetItem(QString::number(obj["price"].toDouble(), 'f', 2)));
-        }
-    }
     // Бухгалтерия
     else if (id == m_pendingAccountingId) {
         m_pendingAccountingId = 0;
@@ -635,6 +770,33 @@ void MainWindow::onServerResponse(quint32 id, const QString &response)
             m_accountingTable->setItem(i, 6, new QTableWidgetItem(QString::number(obj["total_amount"].toDouble(), 'f', 2)));
         }
     }
+    else if (id == m_pendingPriceHistoryId) {
+        m_pendingPriceHistoryId = 0;
+        QJsonArray arr = parseJsonArray("PRICEHISTORY");
+        m_priceHistoryTable->setRowCount(arr.size());
+        for (int i = 0; i < arr.size(); ++i) {
+            QJsonObject obj = arr[i].toObject();
+            m_priceHistoryTable->setItem(i, 0, new QTableWidgetItem(obj["article"].toString()));
+            m_priceHistoryTable->setItem(i, 1, new QTableWidgetItem(obj["detail_name"].toString()));
+            m_priceHistoryTable->setItem(i, 2, new QTableWidgetItem(obj["supplier_name"].toString()));
+            m_priceHistoryTable->setItem(i, 3, new QTableWidgetItem(obj["change_date"].toString()));
+            m_priceHistoryTable->setItem(i, 4, new QTableWidgetItem(QString::number(obj["price"].toDouble(), 'f', 2)));
+        }
+    }
+    else if (id == m_pendingCurrentPricesId) {
+        m_pendingCurrentPricesId = 0;
+        QJsonArray arr = parseJsonArray("CURRENTPRICES");
+        m_currentPricesTable->setRowCount(arr.size());
+        for (int i = 0; i < arr.size(); ++i) {
+            QJsonObject obj = arr[i].toObject();
+            m_currentPricesTable->setItem(i, 0, new QTableWidgetItem(obj["article"].toString()));
+            m_currentPricesTable->setItem(i, 1, new QTableWidgetItem(obj["detail_name"].toString()));
+            m_currentPricesTable->setItem(i, 2, new QTableWidgetItem(QString::number(obj["price"].toDouble(), 'f', 2)));
+            m_currentPricesTable->setItem(i, 3, new QTableWidgetItem(obj["change_date"].toString()));
+            m_currentPricesTable->setItem(i, 4, new QTableWidgetItem(obj["supplier_name"].toString()));
+            m_currentPricesTable->setItem(i, 5, new QTableWidgetItem(QString::number(obj["supplier_id"].toInt())));
+        }
+    }
     // Универсальный обработчик операций
     else if (id == m_pendingGenericId) {
         m_pendingGenericId = 0;
@@ -646,8 +808,9 @@ void MainWindow::onServerResponse(quint32 id, const QString &response)
             if (m_detailsTable)      refreshDetailsTable();
             if (m_priceChangesTable) refreshPriceChangesTable();
             if (m_suppliesTable)     refreshSuppliesTable();
-            if (m_priceHistoryTable) refreshPriceHistoryTable();
             if (m_accountingTable)   refreshAccountingTable();
+            if (m_priceHistoryTable)   refreshPriceHistoryTable();
+            if (m_currentPricesTable) refreshCurrentPricesTable();
         } else {
             QString err = "Операция завершилась неудачно.";
             if (response.startsWith("ERROR ")) err = response.mid(6);

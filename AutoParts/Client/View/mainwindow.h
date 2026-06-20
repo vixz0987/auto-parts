@@ -4,7 +4,9 @@
 #include <QMainWindow>
 #include <QTableWidget>
 #include <QLineEdit>
+#include <QTimer>
 #include <QList>
+#include <QPushButton>
 #include "TcpClient/tcpclient.h"
 #include "Utils/sessionmanager.h"
 #include "Utils/datatypes.h"
@@ -22,6 +24,11 @@ public:
 
 private slots:
     void onServerResponse(quint32 id, const QString &response);
+    void onPeriodicRefresh();
+    void addCommonTabs();
+
+    void onProfile();
+    void onLogout();
 
     // Пользователи
     void onAddUser();
@@ -54,8 +61,9 @@ private slots:
     void refreshSuppliesTable();
 
     // Представления
-    void refreshPriceHistoryTable();
     void refreshAccountingTable();
+    void refreshPriceHistoryTable();
+    void refreshCurrentPricesTable();
 
 private:
     void setupUiForRole(const QString &role);
@@ -67,13 +75,24 @@ private:
     Ui::MainWindow *ui;
     TcpClient *m_client;
 
+    QTimer *m_updateTimer;
+
+    QTableWidget *m_priceHistoryTable = nullptr;
+    QLineEdit *m_searchPriceHistory = nullptr;
+
+    QTableWidget *m_currentPricesTable = nullptr;
+    QLineEdit *m_searchCurrentPrices = nullptr;
+    quint32 m_pendingCurrentPricesId = 0;
+
+    QPushButton *m_profileButton = nullptr;
+    QPushButton *m_logoutButton = nullptr;
+
     // Таблицы
     QTableWidget *m_usersTable = nullptr;
     QTableWidget *m_suppliersTable = nullptr;
     QTableWidget *m_detailsTable = nullptr;
     QTableWidget *m_priceChangesTable = nullptr;
     QTableWidget *m_suppliesTable = nullptr;
-    QTableWidget *m_priceHistoryTable = nullptr;
     QTableWidget *m_accountingTable = nullptr;
 
     // Поля поиска
@@ -81,6 +100,7 @@ private:
     QLineEdit *m_searchDetails = nullptr;
     QLineEdit *m_searchPriceChanges = nullptr;
     QLineEdit *m_searchSupplies = nullptr;
+    QLineEdit *m_accountingSearch = nullptr;
 
     // Кеш справочных данных
     QList<DetailItem> m_detailItems;
