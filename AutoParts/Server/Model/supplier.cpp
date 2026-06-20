@@ -23,7 +23,6 @@ void Supplier::setName(const QString &name) { m_name = name; }
 void Supplier::setPhone(const QString &phone) { m_phone = phone; }
 void Supplier::setAddress(const QString &address) { m_address = address; }
 
-// Сохранение нового поставщика в БД
 bool Supplier::save()
 {
     QSqlDatabase db = Database::instance()->getDb();
@@ -42,7 +41,6 @@ bool Supplier::save()
     return true;
 }
 
-// Обновление существующего поставщика
 bool Supplier::update()
 {
     if (m_supplierId == 0) return false;
@@ -62,7 +60,6 @@ bool Supplier::update()
     return true;
 }
 
-// Удаление поставщика
 bool Supplier::remove()
 {
     if (m_supplierId == 0) return false;
@@ -78,7 +75,6 @@ bool Supplier::remove()
     return true;
 }
 
-// Загрузка одного поставщика по идентификатору
 Supplier* Supplier::loadById(int supplierId)
 {
     QSqlDatabase db = Database::instance()->getDb();
@@ -94,7 +90,6 @@ Supplier* Supplier::loadById(int supplierId)
                         query.value("address").toString());
 }
 
-// Загрузка всех поставщиков
 QList<Supplier*> Supplier::loadAll()
 {
     QList<Supplier*> suppliers;

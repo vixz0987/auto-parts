@@ -6,13 +6,11 @@ QList<SupplyView*> SupplyController::getAllSupplies() {
     return SupplyView::loadAll();
 }
 
-bool SupplyController::addSupply(const QDate &supplyDate, int quantity,
-                                 int supplierId, int priceChangeId)
+bool SupplyController::addSupply(const QDate &supplyDate, int quantity, int priceChangeId)
 {
     Supply *s = new Supply();
     s->setSupplyDate(supplyDate);
     s->setQuantity(quantity);
-    s->setSupplierId(supplierId);
     s->setPriceChangeId(priceChangeId);
     bool ok = s->save();
     delete s;
@@ -20,13 +18,12 @@ bool SupplyController::addSupply(const QDate &supplyDate, int quantity,
 }
 
 bool SupplyController::updateSupply(int supplyId, const QDate &supplyDate,
-                                    int quantity, int supplierId, int priceChangeId)
+                                    int quantity, int priceChangeId)
 {
     Supply *s = Supply::loadById(supplyId);
     if (!s) return false;
     s->setSupplyDate(supplyDate);
     s->setQuantity(quantity);
-    s->setSupplierId(supplierId);
     s->setPriceChangeId(priceChangeId);
     bool ok = s->update();
     delete s;
