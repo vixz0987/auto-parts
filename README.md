@@ -4,70 +4,88 @@
 
 ```
 AutoParts/
-├── AutoParts.pro
 ├── .gitignore
-│
-├── Server/                # Сервер (консольное приложение)
-│   ├── Server.pro
+├── AutoParts.pro
+├── Client/
+│   ├── Client.pro
 │   ├── main.cpp
-│   ├── Controller/
-│   │   ├── authcontroller.h
-│   │   ├── authcontroller.cpp
-│   │   ├── suppliercontroller.h
-│   │   ├── suppliercontroller.cpp
-│   │   ├── usercontroller.h
-│   │   └── usercontroller.cpp
-│   ├── Model/
-│   │   ├── user.h
-│   │   ├── user.cpp
-│   │   ├── userinfoview.h
-│   │   ├── userinfoview.cpp
-│   │   ├── supplier.h
-│   │   ├── supplier.cpp
-│   │   ├── detail.h
-│   │   ├── detail.cpp
-│   │   ├── supply.h
-│   │   ├── supply.cpp
-│   │   ├── supplyview.h
-│   │   ├── supplyview.cpp
-│   │   ├── pricechange.h
-│   │   ├── pricechange.cpp
-│   │   ├── pricehistoryview.h
-│   │   ├── pricehistoryview.cpp
-│   │   ├── accountingview.h
-│   │   ├── accountingview.cpp
-│   │   ├── supplierpricechange.h
-│   │   └── supplierpricechange.cpp
-│   ├── TcpServer/
-│   │   ├── tcpserver.h
-│   │   └── tcpserver.cpp
-│   └── Utils/
-│       ├── database.h
-│       └── database.cpp
-│
-└── Client/                      # Клиент (GUI, без доступа к БД)
-    ├── Client.pro
+│   ├── Services/
+│   │   ├── clientservice.cpp
+│   │   ├── clientservice.h
+│   │   ├── sessionmanager.cpp
+│   │   └── sessionmanager.h
+│   ├── TcpClient/
+│   │   ├── tcpclient.cpp
+│   │   └── tcpclient.h
+│   └── View/
+│       ├── detaildialog.cpp
+│       ├── detaildialog.h
+│       ├── detaildialog.ui
+│       ├── logindialog.cpp
+│       ├── logindialog.h
+│       ├── logindialog.ui
+│       ├── mainwindow.cpp
+│       ├── mainwindow.h
+│       ├── mainwindow.ui
+│       ├── pricechangedialog.cpp
+│       ├── pricechangedialog.h
+│       ├── pricechangedialog.ui
+│       ├── profiledialog.cpp
+│       ├── profiledialog.h
+│       ├── profiledialog.ui
+│       ├── registerdialog.cpp
+│       ├── registerdialog.h
+│       ├── registerdialog.ui
+│       ├── supplierdialog.cpp
+│       ├── supplierdialog.h
+│       ├── supplierdialog.ui
+│       ├── supplydialog.cpp
+│       ├── supplydialog.h
+│       ├── supplydialog.ui
+│       ├── userdialog.cpp
+│       ├── userdialog.h
+│       └── userdialog.ui
+└── Server/
+    ├── Controller/
+    │   ├── authcontroller.cpp
+    │   ├── authcontroller.h
+    │   ├── detailcontroller.cpp
+    │   ├── detailcontroller.h
+    │   ├── pricechangecontroller.cpp
+    │   ├── pricechangecontroller.h
+    │   ├── suppliercontroller.cpp
+    │   ├── suppliercontroller.h
+    │   ├── supplycontroller.cpp
+    │   ├── supplycontroller.h
+    │   ├── usercontroller.cpp
+    │   └── usercontroller.h
     ├── main.cpp
-    ├── TcpClient/
-    │   ├── tcpclient.h
-    │   └── tcpclient.cpp
-    ├── Utils/
-    │   ├── sessionmanager.h
-    │   └── sessionmanager.cpp
-    └── View/
-        ├── mainwindow.h
-        ├── mainwindow.cpp
-        ├── mainwindow.ui
-        ├── logindialog.h
-        ├── logindialog.cpp
-        ├── logindialog.ui
-        ├── registerdialog.h
-        ├── registerdialog.cpp
-        ├── registerdialog.ui
-        ├── userdialog.h
-        ├── userdialog.cpp
-        ├── userdialog.ui
-        ├── supplierdialog.h
-        ├── supplierdialog.cpp
-        └── supplierdialog.ui
+    ├── Model/
+    │   ├── accountingview.cpp
+    │   ├── accountingview.h
+    │   ├── currentpriceview.cpp
+    │   ├── currentpriceview.h
+    │   ├── detail.cpp
+    │   ├── detail.h
+    │   ├── pricechange.cpp
+    │   ├── pricechange.h
+    │   ├── pricehistoryview.cpp
+    │   ├── pricehistoryview.h
+    │   ├── supplier.cpp
+    │   ├── supplier.h
+    │   ├── supply.cpp
+    │   ├── supply.h
+    │   ├── supplyview.cpp
+    │   ├── supplyview.h
+    │   ├── user.cpp
+    │   ├── user.h
+    │   ├── userinfoview.cpp
+    │   └── userinfoview.h
+    ├── Server.pro
+    ├── TcpServer/
+    │   ├── tcpserver.cpp
+    │   └── tcpserver.h
+    └── Utils/
+        ├── database.cpp
+        └── database.h
 ```
