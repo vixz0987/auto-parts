@@ -5,7 +5,7 @@ TEMPLATE = app
 OBJECTS_DIR = obj_client
 
 SOURCES += \
-    Services/ClientService.cpp \
+    Services/clientservice.cpp \
     Services/sessionmanager.cpp \
     View/detaildialog.cpp \
     View/pricechangedialog.cpp \
@@ -20,7 +20,7 @@ SOURCES += \
     TcpClient/tcpclient.cpp
 
 HEADERS += \
-    Services/ClientService.h \
+    Services/clientservice.h \
     Services/sessionmanager.h \
     View/detaildialog.h \
     View/logindialog.h \

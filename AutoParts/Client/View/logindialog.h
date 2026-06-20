@@ -2,7 +2,7 @@
 #define LOGINDIALOG_H
 
 #include <QDialog>
-#include "Services/ClientService.h"
+#include "Services/clientservice.h"
 
 namespace Ui { class LoginDialog; }
 

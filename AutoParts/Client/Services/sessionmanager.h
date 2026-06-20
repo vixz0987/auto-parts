@@ -2,7 +2,7 @@
 #define SESSIONMANAGER_H
 
 #include <QObject>
-#include "Services/ClientService.h"
+#include "Services/clientservice.h"
 
 class SessionManager : public QObject
 {

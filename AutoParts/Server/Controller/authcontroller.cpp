@@ -1,15 +1,16 @@
 #include "authcontroller.h"
 #include "Model/user.h"
 
-User* AuthController::login(const QString &login, const QString &password)
+User* AuthController::login(const QString &login, const QString &passwordHash)
 {
-    return User::authenticate(login, password);
+    return User::authenticate(login, passwordHash);
 }
 
 bool AuthController::activateUser(const QString &login, const QString &fio,
-                                  const QString &password)
+                                  const QString &passwordHash)
 {
-    if (!User::isPasswordValid(password))
+    if (passwordHash.isEmpty())
         return false;
-    return User::activateUser(login, fio, password);
+
+    return User::activateUser(login, fio, passwordHash);
 }

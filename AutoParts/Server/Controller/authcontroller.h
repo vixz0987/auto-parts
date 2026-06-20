@@ -10,11 +10,10 @@ class AuthController
 {
 public:
     // Попытка входа - возвращает объект User при успехе, иначе nullptr
-    static User* login(const QString &login, const QString &password);
+    static User* login(const QString &login, const QString &passwordHash);
 
     // Активация учётной записи: логин, ФИО, новый пароль
-    static bool activateUser(const QString &login, const QString &fio,
-                             const QString &password);
+    static bool activateUser(const QString &login, const QString &fio, const QString &passwordHash);
 };
 
 #endif // AUTHCONTROLLER_H

@@ -9,104 +9,6 @@
 #include <QtGlobal>
 #include <cstring>
 
-// Вспомогательные функции для хэширования паролей (PBKDF2-HMAC-SHA256)
-
-// параметры PBKDF2: 10000 итераций, соль 16 байт, ключ 32 байта
-static const int PBKDF2_ITERATIONS = 10000;
-static const int SALT_SIZE          = 16;
-static const int DERIVED_KEY_LEN    = 32;
-
-// Генерирует случайную соль в виде hex-строки
-static QString generateSalt()
-{
-    QByteArray saltBytes(SALT_SIZE, '\0');
-    QRandomGenerator::system()->fillRange(
-        reinterpret_cast<quint32*>(saltBytes.data()),
-        SALT_SIZE / sizeof(quint32));
-    return QString::fromLatin1(saltBytes.toHex());
-}
-
-// Реализация PBKDF2-HMAC-SHA256 согласно RFC 2898
-static QByteArray pbkdf2_hmac_sha256(const QByteArray &password,
-                                     const QByteArray &salt,
-                                     int iterations,
-                                     int dkLen)
-{
-    const int hmacLen = 32;   // SHA-256 даёт 32 байта
-    QByteArray derivedKey;
-    derivedKey.resize(dkLen);
-
-    int blocks = (dkLen + hmacLen - 1) / hmacLen;
-    QByteArray U, currentBlock;
-
-    for (int i = 1; i <= blocks; ++i) {
-        // Формируем входной блок: соль+номер блока
-        QByteArray input = salt;
-        input.append(static_cast<char>((i >> 24) & 0xFF));
-        input.append(static_cast<char>((i >> 16) & 0xFF));
-        input.append(static_cast<char>((i >> 8) & 0xFF));
-        input.append(static_cast<char>(i & 0xFF));
-
-        // Первая итерация HMAC
-        QMessageAuthenticationCode hmac(QCryptographicHash::Sha256);
-        hmac.setKey(password);
-        hmac.addData(input);
-        U = hmac.result();
-        currentBlock = U;
-
-        // Последующие итерации и XOR
-        for (int j = 1; j < iterations; ++j) {
-            hmac.reset();
-            hmac.setKey(password);
-            hmac.addData(U);
-            U = hmac.result();
-            for (int k = 0; k < U.size(); ++k)
-                currentBlock[k] = currentBlock[k] ^ U[k];
-        }
-
-        // Копируем полученный блок в итоговый ключ
-        int bytesToCopy = qMin(hmacLen, dkLen - (i - 1) * hmacLen);
-        memcpy(derivedKey.data() + (i - 1) * hmacLen,
-               currentBlock.constData(), bytesToCopy);
-    }
-    return derivedKey;
-}
-
-// Хэширует пароль с заданной солью
-static QString hashPassword(const QString &password, const QString &salt)
-{
-    QByteArray derivedKey = pbkdf2_hmac_sha256(
-        password.toUtf8(),
-        QByteArray::fromHex(salt.toUtf8()),
-        PBKDF2_ITERATIONS,
-        DERIVED_KEY_LEN);
-    return QString::fromLatin1(derivedKey.toHex());
-}
-
-// Упаковывает соль и хэш в одну строку для хранения в БД
-static QString packHash(const QString &salt, const QString &hash)
-{
-    return salt + ":" + hash;
-}
-
-// Проверяет пароль: извлекает соль из хранимой строки, хэширует введённый пароль
-static bool verifyPassword(const QString &password, const QString &storedHash)
-{
-    int colon = storedHash.indexOf(':');
-    if (colon < 0) return false;
-    QString salt = storedHash.left(colon);
-    QString hash = storedHash.mid(colon + 1);
-    return hashPassword(password, salt) == hash;
-}
-
-// Полный цикл: генерирует соль, хэширует пароль, возвращает строку для БД
-static QString generatePasswordHash(const QString &password)
-{
-    QString salt = generateSalt();
-    QString hash = hashPassword(password, salt);
-    return packHash(salt, hash);
-}
-
 // Реализация класса User
 
 User::User(QObject *parent)
@@ -130,7 +32,7 @@ void User::setPasswordHash(const QString &hash) { m_passwordHash = hash; }
 void User::setRole(const QString &role) { m_role = role; }
 
 // аутентификация: пароль должен быть задан (не NULL и не пустая строка)
-User* User::authenticate(const QString &login, const QString &password)
+User* User::authenticate(const QString &login, const QString &passwordHash)
 {
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
@@ -144,12 +46,12 @@ User* User::authenticate(const QString &login, const QString &password)
     }
 
     QString storedHash = query.value("password_hash").toString();
-    // проверяем, что пароль установлен (не пустая строка и не NULL)
     if (storedHash.isEmpty() || storedHash.isNull()) {
         qDebug() << "Учётная запись не активирована:" << login;
         return nullptr;
     }
-    if (!verifyPassword(password, storedHash)) {
+
+    if (passwordHash != storedHash) {
         qDebug() << "Неверный пароль для:" << login;
         return nullptr;
     }
@@ -162,23 +64,20 @@ User* User::authenticate(const QString &login, const QString &password)
 }
 
 // активация учётной записи: проверяем логин, ФИО и что пароль не задан
-bool User::activateUser(const QString &login, const QString &fio,
-                        const QString &password)
+bool User::activateUser(const QString &login, const QString &fio, const QString &passwordHash)
 {
-    if (!isPasswordValid(password))
-        return false;
+    if (passwordHash.isEmpty()) return false;
 
     QSqlDatabase db = Database::instance()->getDb();
     QSqlQuery query(db);
 
-    // ищем запись с таким логином и ФИО, у которой пароль ещё пуст
     query.prepare("SELECT user_id, password_hash FROM auto_parts.users "
                   "WHERE login = :login AND fio = :fio");
     query.bindValue(":login", login);
     query.bindValue(":fio", fio);
 
     if (!query.exec() || !query.next()) {
-        qDebug() << "Не найдена запись для активации с такими логином/ФИО";
+        qDebug() << "Не найдена запись для активации";
         return false;
     }
 
@@ -188,12 +87,10 @@ bool User::activateUser(const QString &login, const QString &fio,
         return false;
     }
 
-    // генерируем хэш и обновляем запись
-    QString newHash = generatePasswordHash(password);
     QSqlQuery updateQuery(db);
     updateQuery.prepare("UPDATE auto_parts.users SET password_hash = :hash "
                         "WHERE login = :login");
-    updateQuery.bindValue(":hash", newHash);
+    updateQuery.bindValue(":hash", passwordHash);
     updateQuery.bindValue(":login", login);
 
     if (!updateQuery.exec()) {
@@ -202,7 +99,6 @@ bool User::activateUser(const QString &login, const QString &fio,
     }
     return true;
 }
-
 
 // создание пользователя администратором (без пароля)
 bool User::createUser(const QString &login, const QString &fio,
@@ -318,31 +214,22 @@ QList<User*> User::loadAll()
     return users;
 }
 
-// проверка пароля регулярным выражением
-bool User::isPasswordValid(const QString &password)
+bool User::changePassword(int userId, const QString &oldPasswordHash, const QString &newPasswordHash)
 {
-    QRegularExpression re("^(?=.*[A-Z])(?=.*\\d)(?=.*[!@#$%^&*()_+=-]).{8,}$");
-    return re.match(password).hasMatch();
-}
-
-bool User::changePassword(int userId, const QString &oldPassword, const QString &newPassword)
-{
-    if (!isPasswordValid(newPassword))
-        return false;
+    if (newPasswordHash.isEmpty()) return false;
 
     User *user = loadById(userId);
     if (!user) return false;
 
-    // Проверяем старый пароль
+    // Сравниваем хеши старых паролей
     QString storedHash = user->passwordHash();
-    if (storedHash.isEmpty() || !verifyPassword(oldPassword, storedHash)) {
+    if (storedHash.isEmpty() || oldPasswordHash != storedHash) {
         delete user;
         return false;
     }
 
-    // Генерируем новый хэш
-    QString newHash = generatePasswordHash(newPassword);
-    user->setPasswordHash(newHash);
+    // Сохраняем новый хеш
+    user->setPasswordHash(newPasswordHash);
     bool ok = user->update();
     delete user;
     return ok;

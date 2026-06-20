@@ -115,7 +115,9 @@ QString TcpServer::processCommand(quint32 reqId, const QString &command, const Q
         QString login = obj["login"].toString();
         QString fio = obj["fio"].toString();
         QString password = obj["password"].toString();
-        if (login.isEmpty() || fio.isEmpty() || password.isEmpty()) return makeErr("Missing fields");
+        if (login.isEmpty() || fio.isEmpty() || password.isEmpty())
+            return makeErr("Missing fields");
+
         bool ok = AuthController::activateUser(login, fio, password);
         return ok ? makeOk("ACTIVATED") : makeErr("Activation failed");
     }

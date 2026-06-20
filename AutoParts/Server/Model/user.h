@@ -31,19 +31,18 @@ public:
     // статические методы для работы с таблицей users
 
     // аутентификация: возвращает пользователя, если пароль верен и аккаунт активирован
-    static User* authenticate(const QString &login, const QString &password);
+    static User* authenticate(const QString &login, const QString &passwordHash);
 
     // активация учётной записи: пользователь задаёт пароль, если запись существует,
     // ФИО совпадает и пароль ещё не был задан.
-    static bool activateUser(const QString &login, const QString &fio,
-                             const QString &password);
+    static bool activateUser(const QString &login, const QString &fio, const QString &passwordHash);
 
     // создание нового пользователя администратором (пароль не задаётся)
     static bool createUser(const QString &login, const QString &fio,
                            const QString &role);
 
     // смена пароля(требуется старый пароль)
-    static bool changePassword(int userId, const QString &oldPassword, const QString &newPassword);
+    static bool changePassword(int userId, const QString &oldPasswordHash, const QString &newPasswordHash);
 
     // смена ФИО
     static bool changeFio(int userId, const QString &newFio);
@@ -54,8 +53,6 @@ public:
     static User* loadById(int userId);
     static QList<User*> loadAll();
 
-    // проверка сложности пароля через регулярное выражение
-    static bool isPasswordValid(const QString &password);
 
 private:
     int m_userId;

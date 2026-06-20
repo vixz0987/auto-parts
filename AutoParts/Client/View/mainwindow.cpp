@@ -7,7 +7,7 @@
 #include "pricechangedialog.h"
 #include "supplydialog.h"
 #include "profiledialog.h"
-#include "Services/ClientService.h"
+#include "Services/clientservice.h"
 #include <QApplication>
 #include <QMessageBox>
 #include <QTabWidget>
@@ -19,6 +19,7 @@
 #include <QCheckBox>
 #include <QScrollArea>
 #include <QDebug>
+#include <QTimer>
 
 MainWindow::MainWindow(TcpClient *client, QWidget *parent)
     : QMainWindow(parent), ui(new Ui::MainWindow), m_client(client)
@@ -100,6 +101,20 @@ void MainWindow::onLogout()
 // Настройка вкладок
 // ----------------------------------------------------------------
 
+void MainWindow::scheduleResizeAllTables()
+{
+    QTimer::singleShot(50, this, [this]() {
+        if (m_usersTable) m_usersTable->resizeRowsToContents();
+        if (m_suppliersTable) m_suppliersTable->resizeRowsToContents();
+        if (m_detailsTable) m_detailsTable->resizeRowsToContents();
+        if (m_priceChangesTable) m_priceChangesTable->resizeRowsToContents();
+        if (m_suppliesTable) m_suppliesTable->resizeRowsToContents();
+        if (m_accountingTable) m_accountingTable->resizeRowsToContents();
+        if (m_priceHistoryTable) m_priceHistoryTable->resizeRowsToContents();
+        if (m_currentPricesTable) m_currentPricesTable->resizeRowsToContents();
+    });
+}
+
 void MainWindow::addCommonTabs()
 {
     QWidget *priceTab = new QWidget();
@@ -111,8 +126,6 @@ void MainWindow::addCommonTabs()
     m_currentPricesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_currentPricesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_currentPricesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
-    m_currentPricesTable->setWordWrap(true);
-    m_currentPricesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     priceLayout->addWidget(m_currentPricesTable);
 
     m_searchCurrentPrices = new QLineEdit();
@@ -155,7 +168,6 @@ void MainWindow::addAdminTabs()
     m_usersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_usersTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_usersTable->setWordWrap(true);
-    m_usersTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     userLayout->addWidget(m_usersTable);
 
     QWidget *btnPanel = new QWidget();
@@ -190,7 +202,6 @@ void MainWindow::addManagerTabs()
     m_detailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_detailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_detailsTable->setWordWrap(true);
-    m_detailsTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     detailsLayout->addWidget(m_detailsTable);
 
     m_searchDetails = new QLineEdit();
@@ -228,7 +239,6 @@ void MainWindow::addManagerTabs()
     m_priceChangesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_priceChangesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_priceChangesTable->setWordWrap(true);
-    m_priceChangesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     pcLayout->addWidget(m_priceChangesTable);
 
     m_searchPriceChanges = new QLineEdit();
@@ -266,7 +276,6 @@ void MainWindow::addManagerTabs()
     m_suppliesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_suppliesTable->setWordWrap(true);
-    m_suppliesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     supLayout->addWidget(m_suppliesTable);
 
     m_searchSupplies = new QLineEdit();
@@ -304,7 +313,6 @@ void MainWindow::addManagerTabs()
     m_suppliersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_suppliersTable->setWordWrap(true);
-    m_suppliersTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     suppliersLayout->addWidget(m_suppliersTable);
 
     m_searchSuppliers = new QLineEdit();
@@ -349,7 +357,6 @@ void MainWindow::addAccountantTabs()
     m_accountingTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_accountingTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_accountingTable->setWordWrap(true);
-    m_accountingTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     accLayout->addWidget(m_accountingTable);
 
     connect(m_accountingSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -370,7 +377,6 @@ void MainWindow::addAccountantTabs()
     m_priceHistoryTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_priceHistoryTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_priceHistoryTable->setWordWrap(true);
-    m_priceHistoryTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     phLayout->addWidget(m_priceHistoryTable);
 
     m_searchPriceHistory = new QLineEdit();
@@ -653,7 +659,7 @@ void MainWindow::updateUsersTable(const QList<UserData>& users)
         m_usersTable->setItem(i, 2, new QTableWidgetItem(u.fio));
         m_usersTable->setItem(i, 3, new QTableWidgetItem(u.role));
     }
-    m_usersTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updateSuppliersTable(const QList<SupplierData>& suppliers)
@@ -667,7 +673,7 @@ void MainWindow::updateSuppliersTable(const QList<SupplierData>& suppliers)
         m_suppliersTable->setItem(i, 2, new QTableWidgetItem(s.phone));
         m_suppliersTable->setItem(i, 3, new QTableWidgetItem(s.address));
     }
-    m_suppliersTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updateDetailsTable(const QList<DetailData>& details)
@@ -680,7 +686,7 @@ void MainWindow::updateDetailsTable(const QList<DetailData>& details)
         m_detailsTable->setItem(i, 1, new QTableWidgetItem(d.article));
         m_detailsTable->setItem(i, 2, new QTableWidgetItem(d.name));
     }
-    m_detailsTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updatePriceChangesTable(const QList<PriceChangeData>& changes)
@@ -696,7 +702,7 @@ void MainWindow::updatePriceChangesTable(const QList<PriceChangeData>& changes)
         m_priceChangesTable->setItem(i, 4, new QTableWidgetItem(pc.changeDate.toString(Qt::ISODate)));
         m_priceChangesTable->setItem(i, 5, new QTableWidgetItem(QString::number(pc.price, 'f', 2)));
     }
-    m_priceChangesTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updateSuppliesTable(const QList<SupplyData>& supplies)
@@ -714,7 +720,7 @@ void MainWindow::updateSuppliesTable(const QList<SupplyData>& supplies)
         m_suppliesTable->setItem(i, 6, new QTableWidgetItem(QString::number(s.quantity)));
         m_suppliesTable->setItem(i, 7, new QTableWidgetItem(QString::number(s.totalAmount, 'f', 2)));
     }
-    m_suppliesTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updateCurrentPricesTable(const QList<CurrentPriceData>& prices)
@@ -730,7 +736,7 @@ void MainWindow::updateCurrentPricesTable(const QList<CurrentPriceData>& prices)
         m_currentPricesTable->setItem(i, 4, new QTableWidgetItem(cp.supplierName));
         m_currentPricesTable->setItem(i, 5, new QTableWidgetItem(QString::number(cp.supplierId)));
     }
-    m_currentPricesTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updatePriceHistoryTable(const QList<PriceHistoryData>& history)
@@ -745,7 +751,7 @@ void MainWindow::updatePriceHistoryTable(const QList<PriceHistoryData>& history)
         m_priceHistoryTable->setItem(i, 3, new QTableWidgetItem(ph.changeDate.toString(Qt::ISODate)));
         m_priceHistoryTable->setItem(i, 4, new QTableWidgetItem(QString::number(ph.price, 'f', 2)));
     }
-    m_priceHistoryTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 void MainWindow::updateAccountingTable(const QList<AccountingData>& accounting)
@@ -762,7 +768,7 @@ void MainWindow::updateAccountingTable(const QList<AccountingData>& accounting)
         m_accountingTable->setItem(i, 5, new QTableWidgetItem(QString::number(a.unitPrice, 'f', 2)));
         m_accountingTable->setItem(i, 6, new QTableWidgetItem(QString::number(a.totalAmount, 'f', 2)));
     }
-    m_accountingTable->resizeRowsToContents();
+    scheduleResizeAllTables();
 }
 
 // ----------------------------------------------------------------

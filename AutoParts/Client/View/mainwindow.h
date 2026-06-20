@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <QPushButton>
 #include "TcpClient/tcpclient.h"
-#include "Services/ClientService.h"
+#include "Services/clientservice.h"
 #include "Services/sessionmanager.h"
 
 QT_BEGIN_NAMESPACE
@@ -76,6 +76,7 @@ private slots:
 
 private:
     void setupUiForRole(const QString& role);
+    void scheduleResizeAllTables();
     void addCommonTabs();
     void addAdminTabs();
     void addManagerTabs();

@@ -1,8 +1,11 @@
-#include "ClientService.h"
+#include "clientservice.h"
 #include <QJsonDocument>
 #include <QJsonArray>
 #include <QJsonObject>
 #include <QDebug>
+#include <QCryptographicHash>
+#include <QRandomGenerator>
+#include <QMessageAuthenticationCode>
 
 ClientService::ClientService(TcpClient* client, QObject* parent)
     : QObject(parent), m_client(client)
@@ -23,10 +26,19 @@ QJsonDocument ClientService::parseJsonPayload(const QString& response, const QSt
     return QJsonDocument::fromJson(jsonStr.toUtf8());
 }
 
+
+// ---------- Шифрование ----------
+static QString hashPassword(const QString& password)
+{
+    QString salted = password + "AutoPartsSalt2026";
+    return QString(QCryptographicHash::hash(salted.toUtf8(), QCryptographicHash::Sha256).toHex());
+}
+
 // ---------- Аутентификация ----------
 void ClientService::login(const QString& login, const QString& password)
 {
-    m_loginRequestId = sendCommand(QString("LOGIN %1 %2").arg(login, password));
+    QString hashedPassword = hashPassword(password);
+    m_loginRequestId = sendCommand(QString("LOGIN %1 %2").arg(login, hashedPassword));
 }
 
 void ClientService::activate(const QString& login, const QString& fio, const QString& password)
@@ -34,7 +46,7 @@ void ClientService::activate(const QString& login, const QString& fio, const QSt
     QJsonObject obj;
     obj["login"] = login;
     obj["fio"] = fio;
-    obj["password"] = password;
+    obj["password"] = hashPassword(password);
     QJsonDocument doc(obj);
     m_activationRequestId = sendCommand("ACTIVATE " + QString::fromUtf8(doc.toJson(QJsonDocument::Compact)));
 }
@@ -76,8 +88,8 @@ void ClientService::changePassword(int userId, const QString& oldPassword, const
 {
     QJsonObject obj;
     obj["userId"] = userId;
-    obj["oldPassword"] = oldPassword;
-    obj["newPassword"] = newPassword;
+    obj["oldPassword"] = hashPassword(oldPassword); // Хешируем старый
+    obj["newPassword"] = hashPassword(newPassword); // Хешируем новый
     QJsonDocument doc(obj);
     m_operationRequestId = sendCommand("CHANGEPASSWORD " + QString::fromUtf8(doc.toJson(QJsonDocument::Compact)));
 }

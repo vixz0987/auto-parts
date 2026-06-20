@@ -3,7 +3,7 @@
 
 #include <QDialog>
 #include <QDate>
-#include "Services/ClientService.h"
+#include "Services/clientservice.h"
 
 namespace Ui { class SupplyDialog; }
 
