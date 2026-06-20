@@ -138,5 +138,6 @@ void SupplyDialog::onAccept()
         QMessageBox::warning(this, "Ошибка", "Количество должно быть больше 0!");
         return;
     }
+    // supplier_id не сохраняется – связь с поставщиком через price_change_id
     accept();
 }

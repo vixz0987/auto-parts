@@ -1,5 +1,4 @@
 #include "database.h"
-#include <QDebug>
 
 Database* Database::m_instance = nullptr;
 

@@ -531,7 +531,6 @@ void MainWindow::onAddSupply() {
         QJsonObject obj;
         obj["supply_date"] = dlg.supplyDate().toString(Qt::ISODate);
         obj["quantity"] = dlg.quantity();
-        obj["supplier_id"] = dlg.selectedSupplierId();
         obj["price_change_id"] = dlg.selectedPriceChangeId();
         m_pendingGenericId = m_client->sendCommand("ADDSUPPLY " +
                                                    QJsonDocument(obj).toJson(QJsonDocument::Compact));

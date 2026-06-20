@@ -4,11 +4,9 @@
 #include <QString>
 #include <QObject>
 
-// Класс-модель для таблицы auto_parts.suppliers (Поставщики)
 class Supplier : public QObject
 {
     Q_OBJECT
-
 public:
     explicit Supplier(QObject *parent = nullptr);
     Supplier(int supplierId, const QString &name, const QString &phone,
@@ -23,10 +21,9 @@ public:
     void setPhone(const QString &phone);
     void setAddress(const QString &address);
 
-    // CRUD
-    bool save(); // вставка
-    bool update(); // обновление
-    bool remove(); // удаление
+    bool save();
+    bool update();
+    bool remove();
     static Supplier* loadById(int supplierId);
     static QList<Supplier*> loadAll();
 

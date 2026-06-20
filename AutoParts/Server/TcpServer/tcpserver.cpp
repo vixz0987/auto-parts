@@ -354,10 +354,9 @@ QString TcpServer::processCommand(quint32 reqId, const QString &command, const Q
         if (obj.isEmpty()) return makeErr("Invalid JSON");
         QDate date = QDate::fromString(obj["supply_date"].toString(), Qt::ISODate);
         int quantity = obj["quantity"].toInt();
-        int supplierId = obj["supplier_id"].toInt();
         int pcId = obj["price_change_id"].toInt();
-        if (!date.isValid() || quantity <= 0 || supplierId <= 0 || pcId <= 0) return makeErr("Invalid fields");
-        bool ok = SupplyController::addSupply(date, quantity, supplierId, pcId);
+        if (!date.isValid() || quantity <= 0 || pcId <= 0) return makeErr("Invalid fields");
+        bool ok = SupplyController::addSupply(date, quantity, pcId);
         return ok ? makeOk("SUPPLYADDED") : makeErr("Add supply failed");
     }
     else if (command == "UPDSUPPLY") {
@@ -366,10 +365,9 @@ QString TcpServer::processCommand(quint32 reqId, const QString &command, const Q
         int id = obj["supply_id"].toInt();
         QDate date = QDate::fromString(obj["supply_date"].toString(), Qt::ISODate);
         int quantity = obj["quantity"].toInt();
-        int supplierId = obj["supplier_id"].toInt();
         int pcId = obj["price_change_id"].toInt();
-        if (id <= 0 || !date.isValid() || quantity <= 0 || supplierId <= 0 || pcId <= 0) return makeErr("Invalid fields");
-        bool ok = SupplyController::updateSupply(id, date, quantity, supplierId, pcId);
+        if (id <= 0 || !date.isValid() || quantity <= 0 || pcId <= 0) return makeErr("Invalid fields");
+        bool ok = SupplyController::updateSupply(id, date, quantity, pcId);
         return ok ? makeOk("SUPPLYUPDATED") : makeErr("Update supply failed");
     }
     else if (command == "DELSUPPLY") {
