@@ -97,24 +97,6 @@ void MainWindow::onLogout()
     QApplication::quit();
 }
 
-// ----------------------------------------------------------------
-// Настройка вкладок
-// ----------------------------------------------------------------
-
-void MainWindow::scheduleResizeAllTables()
-{
-    QTimer::singleShot(50, this, [this]() {
-        if (m_usersTable) m_usersTable->resizeRowsToContents();
-        if (m_suppliersTable) m_suppliersTable->resizeRowsToContents();
-        if (m_detailsTable) m_detailsTable->resizeRowsToContents();
-        if (m_priceChangesTable) m_priceChangesTable->resizeRowsToContents();
-        if (m_suppliesTable) m_suppliesTable->resizeRowsToContents();
-        if (m_accountingTable) m_accountingTable->resizeRowsToContents();
-        if (m_priceHistoryTable) m_priceHistoryTable->resizeRowsToContents();
-        if (m_currentPricesTable) m_currentPricesTable->resizeRowsToContents();
-    });
-}
-
 void MainWindow::addCommonTabs()
 {
     QWidget *priceTab = new QWidget();
@@ -126,6 +108,8 @@ void MainWindow::addCommonTabs()
     m_currentPricesTable->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
     m_currentPricesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_currentPricesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    m_currentPricesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    m_currentPricesTable->setWordWrap(true);
     priceLayout->addWidget(m_currentPricesTable);
 
     m_searchCurrentPrices = new QLineEdit();
@@ -168,6 +152,7 @@ void MainWindow::addAdminTabs()
     m_usersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_usersTable->setSelectionMode(QAbstractItemView::SingleSelection);
     m_usersTable->setWordWrap(true);
+    m_usersTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     userLayout->addWidget(m_usersTable);
 
     QWidget *btnPanel = new QWidget();
@@ -191,7 +176,6 @@ void MainWindow::addAdminTabs()
 
 void MainWindow::addManagerTabs()
 {
-    // ДЕТАЛИ
     QWidget *detailsTab = new QWidget();
     QVBoxLayout *detailsLayout = new QVBoxLayout(detailsTab);
 
@@ -202,6 +186,7 @@ void MainWindow::addManagerTabs()
     m_detailsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_detailsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_detailsTable->setWordWrap(true);
+    m_detailsTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     detailsLayout->addWidget(m_detailsTable);
 
     m_searchDetails = new QLineEdit();
@@ -228,7 +213,6 @@ void MainWindow::addManagerTabs()
     ui->tabWidgetMain->addTab(detailsTab, "Детали");
     refreshDetailsTable();
 
-    // ЦЕНОВЫЕ ИЗМЕНЕНИЯ
     QWidget *pcTab = new QWidget();
     QVBoxLayout *pcLayout = new QVBoxLayout(pcTab);
 
@@ -239,6 +223,7 @@ void MainWindow::addManagerTabs()
     m_priceChangesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_priceChangesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_priceChangesTable->setWordWrap(true);
+    m_priceChangesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     pcLayout->addWidget(m_priceChangesTable);
 
     m_searchPriceChanges = new QLineEdit();
@@ -265,7 +250,6 @@ void MainWindow::addManagerTabs()
     ui->tabWidgetMain->addTab(pcTab, "Ценовые изменения");
     refreshPriceChangesTable();
 
-    // ПОСТАВКИ
     QWidget *supTab = new QWidget();
     QVBoxLayout *supLayout = new QVBoxLayout(supTab);
 
@@ -276,6 +260,7 @@ void MainWindow::addManagerTabs()
     m_suppliesTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliesTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_suppliesTable->setWordWrap(true);
+    m_suppliesTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     supLayout->addWidget(m_suppliesTable);
 
     m_searchSupplies = new QLineEdit();
@@ -302,7 +287,6 @@ void MainWindow::addManagerTabs()
     ui->tabWidgetMain->addTab(supTab, "Поставки");
     refreshSuppliesTable();
 
-    // ПОСТАВЩИКИ
     QWidget *suppliersTab = new QWidget();
     QVBoxLayout *suppliersLayout = new QVBoxLayout(suppliersTab);
 
@@ -313,6 +297,7 @@ void MainWindow::addManagerTabs()
     m_suppliersTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_suppliersTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_suppliersTable->setWordWrap(true);
+    m_suppliersTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     suppliersLayout->addWidget(m_suppliersTable);
 
     m_searchSuppliers = new QLineEdit();
@@ -342,7 +327,6 @@ void MainWindow::addManagerTabs()
 
 void MainWindow::addAccountantTabs()
 {
-    // Бухгалтерский отчёт
     QWidget *accTab = new QWidget();
     QVBoxLayout *accLayout = new QVBoxLayout(accTab);
 
@@ -357,6 +341,7 @@ void MainWindow::addAccountantTabs()
     m_accountingTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_accountingTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_accountingTable->setWordWrap(true);
+    m_accountingTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     accLayout->addWidget(m_accountingTable);
 
     connect(m_accountingSearch, &QLineEdit::textChanged, this, [this](const QString &text) {
@@ -366,7 +351,6 @@ void MainWindow::addAccountantTabs()
     ui->tabWidgetMain->addTab(accTab, "Бухгалтерский отчет");
     refreshAccountingTable();
 
-    // История цен
     QWidget *priceHistoryTab = new QWidget();
     QVBoxLayout *phLayout = new QVBoxLayout(priceHistoryTab);
 
@@ -377,6 +361,7 @@ void MainWindow::addAccountantTabs()
     m_priceHistoryTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
     m_priceHistoryTable->setSelectionBehavior(QAbstractItemView::SelectRows);
     m_priceHistoryTable->setWordWrap(true);
+    m_priceHistoryTable->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     phLayout->addWidget(m_priceHistoryTable);
 
     m_searchPriceHistory = new QLineEdit();
@@ -389,10 +374,6 @@ void MainWindow::addAccountantTabs()
     ui->tabWidgetMain->addTab(priceHistoryTab, "История изменения цен");
     refreshPriceHistoryTable();
 }
-
-// ----------------------------------------------------------------
-// Вспомогательные
-// ----------------------------------------------------------------
 
 void MainWindow::applyFilter(QTableWidget *table, const QString &text)
 {
@@ -408,10 +389,6 @@ void MainWindow::applyFilter(QTableWidget *table, const QString &text)
         table->setRowHidden(row, !match);
     }
 }
-
-// ----------------------------------------------------------------
-// CRUD: Детали
-// ----------------------------------------------------------------
 
 void MainWindow::onAddDetail()
 {
@@ -455,10 +432,6 @@ void MainWindow::refreshDetailsTable()
     m_clientService->fetchDetails();
 }
 
-// ----------------------------------------------------------------
-// CRUD: Изменения цен
-// ----------------------------------------------------------------
-
 void MainWindow::onAddPriceChange()
 {
     PriceChangeDialog dlg(m_clientService, this);
@@ -493,10 +466,6 @@ void MainWindow::refreshPriceChangesTable()
     m_clientService->fetchPriceChanges();
 }
 
-// ----------------------------------------------------------------
-// CRUD: Поставки
-// ----------------------------------------------------------------
-
 void MainWindow::onAddSupply()
 {
     SupplyDialog dlg(m_clientService, this);
@@ -530,10 +499,6 @@ void MainWindow::refreshSuppliesTable()
 {
     m_clientService->fetchSupplies();
 }
-
-// ----------------------------------------------------------------
-// CRUD: Пользователи
-// ----------------------------------------------------------------
 
 void MainWindow::onAddUser()
 {
@@ -578,10 +543,6 @@ void MainWindow::refreshUsersTable()
     m_clientService->fetchUsers();
 }
 
-// ----------------------------------------------------------------
-// CRUD: Поставщики
-// ----------------------------------------------------------------
-
 void MainWindow::onAddSupplier()
 {
     SupplierDialog dlg(this);
@@ -625,10 +586,6 @@ void MainWindow::refreshSuppliersTable()
     m_clientService->fetchSuppliers();
 }
 
-// ----------------------------------------------------------------
-// Представления
-// ----------------------------------------------------------------
-
 void MainWindow::refreshAccountingTable()
 {
     m_clientService->fetchAccounting();
@@ -644,13 +601,10 @@ void MainWindow::refreshCurrentPricesTable()
     m_clientService->fetchCurrentPrices();
 }
 
-// ----------------------------------------------------------------
-// Слоты обновления таблиц из сервиса
-// ----------------------------------------------------------------
-
 void MainWindow::updateUsersTable(const QList<UserData>& users)
 {
     if (!m_usersTable) return;
+    m_usersTable->setUpdatesEnabled(false);
     m_usersTable->setRowCount(users.size());
     for (int i = 0; i < users.size(); ++i) {
         const UserData& u = users[i];
@@ -659,12 +613,13 @@ void MainWindow::updateUsersTable(const QList<UserData>& users)
         m_usersTable->setItem(i, 2, new QTableWidgetItem(u.fio));
         m_usersTable->setItem(i, 3, new QTableWidgetItem(u.role));
     }
-    scheduleResizeAllTables();
+    m_usersTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updateSuppliersTable(const QList<SupplierData>& suppliers)
 {
     if (!m_suppliersTable) return;
+    m_suppliersTable->setUpdatesEnabled(false);
     m_suppliersTable->setRowCount(suppliers.size());
     for (int i = 0; i < suppliers.size(); ++i) {
         const SupplierData& s = suppliers[i];
@@ -673,12 +628,13 @@ void MainWindow::updateSuppliersTable(const QList<SupplierData>& suppliers)
         m_suppliersTable->setItem(i, 2, new QTableWidgetItem(s.phone));
         m_suppliersTable->setItem(i, 3, new QTableWidgetItem(s.address));
     }
-    scheduleResizeAllTables();
+    m_suppliersTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updateDetailsTable(const QList<DetailData>& details)
 {
     if (!m_detailsTable) return;
+    m_detailsTable->setUpdatesEnabled(false);
     m_detailsTable->setRowCount(details.size());
     for (int i = 0; i < details.size(); ++i) {
         const DetailData& d = details[i];
@@ -686,12 +642,13 @@ void MainWindow::updateDetailsTable(const QList<DetailData>& details)
         m_detailsTable->setItem(i, 1, new QTableWidgetItem(d.article));
         m_detailsTable->setItem(i, 2, new QTableWidgetItem(d.name));
     }
-    scheduleResizeAllTables();
+    m_detailsTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updatePriceChangesTable(const QList<PriceChangeData>& changes)
 {
     if (!m_priceChangesTable) return;
+    m_priceChangesTable->setUpdatesEnabled(false);
     m_priceChangesTable->setRowCount(changes.size());
     for (int i = 0; i < changes.size(); ++i) {
         const PriceChangeData& pc = changes[i];
@@ -702,12 +659,13 @@ void MainWindow::updatePriceChangesTable(const QList<PriceChangeData>& changes)
         m_priceChangesTable->setItem(i, 4, new QTableWidgetItem(pc.changeDate.toString(Qt::ISODate)));
         m_priceChangesTable->setItem(i, 5, new QTableWidgetItem(QString::number(pc.price, 'f', 2)));
     }
-    scheduleResizeAllTables();
+    m_priceChangesTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updateSuppliesTable(const QList<SupplyData>& supplies)
 {
     if (!m_suppliesTable) return;
+    m_suppliesTable->setUpdatesEnabled(false);
     m_suppliesTable->setRowCount(supplies.size());
     for (int i = 0; i < supplies.size(); ++i) {
         const SupplyData& s = supplies[i];
@@ -720,12 +678,13 @@ void MainWindow::updateSuppliesTable(const QList<SupplyData>& supplies)
         m_suppliesTable->setItem(i, 6, new QTableWidgetItem(QString::number(s.quantity)));
         m_suppliesTable->setItem(i, 7, new QTableWidgetItem(QString::number(s.totalAmount, 'f', 2)));
     }
-    scheduleResizeAllTables();
+    m_suppliesTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updateCurrentPricesTable(const QList<CurrentPriceData>& prices)
 {
     if (!m_currentPricesTable) return;
+    m_currentPricesTable->setUpdatesEnabled(false);
     m_currentPricesTable->setRowCount(prices.size());
     for (int i = 0; i < prices.size(); ++i) {
         const CurrentPriceData& cp = prices[i];
@@ -736,12 +695,13 @@ void MainWindow::updateCurrentPricesTable(const QList<CurrentPriceData>& prices)
         m_currentPricesTable->setItem(i, 4, new QTableWidgetItem(cp.supplierName));
         m_currentPricesTable->setItem(i, 5, new QTableWidgetItem(QString::number(cp.supplierId)));
     }
-    scheduleResizeAllTables();
+    m_currentPricesTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updatePriceHistoryTable(const QList<PriceHistoryData>& history)
 {
     if (!m_priceHistoryTable) return;
+    m_priceHistoryTable->setUpdatesEnabled(false);
     m_priceHistoryTable->setRowCount(history.size());
     for (int i = 0; i < history.size(); ++i) {
         const PriceHistoryData& ph = history[i];
@@ -751,12 +711,13 @@ void MainWindow::updatePriceHistoryTable(const QList<PriceHistoryData>& history)
         m_priceHistoryTable->setItem(i, 3, new QTableWidgetItem(ph.changeDate.toString(Qt::ISODate)));
         m_priceHistoryTable->setItem(i, 4, new QTableWidgetItem(QString::number(ph.price, 'f', 2)));
     }
-    scheduleResizeAllTables();
+    m_priceHistoryTable->setUpdatesEnabled(true);
 }
 
 void MainWindow::updateAccountingTable(const QList<AccountingData>& accounting)
 {
     if (!m_accountingTable) return;
+    m_accountingTable->setUpdatesEnabled(false);
     m_accountingTable->setRowCount(accounting.size());
     for (int i = 0; i < accounting.size(); ++i) {
         const AccountingData& a = accounting[i];
@@ -768,12 +729,8 @@ void MainWindow::updateAccountingTable(const QList<AccountingData>& accounting)
         m_accountingTable->setItem(i, 5, new QTableWidgetItem(QString::number(a.unitPrice, 'f', 2)));
         m_accountingTable->setItem(i, 6, new QTableWidgetItem(QString::number(a.totalAmount, 'f', 2)));
     }
-    scheduleResizeAllTables();
+    m_accountingTable->setUpdatesEnabled(true);
 }
-
-// ----------------------------------------------------------------
-// Обработка результатов операций
-// ----------------------------------------------------------------
 
 void MainWindow::onOperationSuccess(quint32 /*requestId*/, const QString& message)
 {
@@ -796,11 +753,10 @@ void MainWindow::onOperationSuccess(quint32 /*requestId*/, const QString& messag
     else if (message == "PASSWORD_CHANGED") friendlyMessage = "Пароль изменен";
     else if (message == "FIO_CHANGED") friendlyMessage = "ФИО изменено";
     else if (message == "ACTIVATED") friendlyMessage = "Активация успешна";
-    else friendlyMessage = message; // на случай неизвестного кода
+    else friendlyMessage = message;
 
     QMessageBox::information(this, "Успешно", "Операция завершена: " + friendlyMessage);
 
-    // Обновление всех таблиц
     if (m_usersTable) refreshUsersTable();
     if (m_suppliersTable) refreshSuppliersTable();
     if (m_detailsTable) refreshDetailsTable();
@@ -815,10 +771,6 @@ void MainWindow::onOperationError(quint32 /*requestId*/, const QString& error)
 {
     QMessageBox::critical(this, "Ошибка", error);
 }
-
-// ----------------------------------------------------------------
-// Периодическое обновление
-// ----------------------------------------------------------------
 
 void MainWindow::onPeriodicRefresh()
 {

@@ -26,42 +26,35 @@ private slots:
     void onLogout();
     void onPeriodicRefresh();
 
-    // Пользователи
     void onAddUser();
     void onChangeRole();
     void onDeleteUser();
     void refreshUsersTable();
 
-    // Поставщики
     void onAddSupplier();
     void onEditSupplier();
     void onDeleteSupplier();
     void refreshSuppliersTable();
 
-    // Детали
     void onAddDetail();
     void onEditDetail();
     void onDeleteDetail();
     void refreshDetailsTable();
 
-    // Изменения цен
     void onAddPriceChange();
     void onEditPriceChange();
     void onDeletePriceChange();
     void refreshPriceChangesTable();
 
-    // Поставки
     void onAddSupply();
     void onEditSupply();
     void onDeleteSupply();
     void refreshSuppliesTable();
 
-    // Представления
     void refreshAccountingTable();
     void refreshPriceHistoryTable();
     void refreshCurrentPricesTable();
 
-    // Слоты обновления из сервиса
     void updateUsersTable(const QList<UserData>& users);
     void updateSuppliersTable(const QList<SupplierData>& suppliers);
     void updateDetailsTable(const QList<DetailData>& details);
@@ -76,7 +69,6 @@ private slots:
 
 private:
     void setupUiForRole(const QString& role);
-    void scheduleResizeAllTables();
     void addCommonTabs();
     void addAdminTabs();
     void addManagerTabs();
@@ -91,7 +83,6 @@ private:
     QPushButton* m_profileButton = nullptr;
     QPushButton* m_logoutButton = nullptr;
 
-    // Таблицы
     QTableWidget* m_usersTable = nullptr;
     QTableWidget* m_suppliersTable = nullptr;
     QTableWidget* m_detailsTable = nullptr;
@@ -101,7 +92,6 @@ private:
     QTableWidget* m_priceHistoryTable = nullptr;
     QTableWidget* m_currentPricesTable = nullptr;
 
-    // Поля поиска
     QLineEdit* m_searchSuppliers = nullptr;
     QLineEdit* m_searchDetails = nullptr;
     QLineEdit* m_searchPriceChanges = nullptr;

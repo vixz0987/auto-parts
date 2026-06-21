@@ -20,8 +20,8 @@ public:
     int userId() const;
     QString login() const;
     QString fio() const;
-    QString passwordHash() const; // хэш с солью (PBKDF2)
-    QString role() const; // admin, manager, accountant
+    QString passwordHash() const;
+    QString role() const;
 
     // сеттеры
     void setFio(const QString &fio);
@@ -29,22 +29,11 @@ public:
     void setRole(const QString &role);
 
     // статические методы для работы с таблицей users
-
-    // аутентификация: возвращает пользователя, если пароль верен и аккаунт активирован
     static User* authenticate(const QString &login, const QString &passwordHash);
-
-    // активация учётной записи: пользователь задаёт пароль, если запись существует,
-    // ФИО совпадает и пароль ещё не был задан.
     static bool activateUser(const QString &login, const QString &fio, const QString &passwordHash);
-
-    // создание нового пользователя администратором (пароль не задаётся)
     static bool createUser(const QString &login, const QString &fio,
                            const QString &role);
-
-    // смена пароля(требуется старый пароль)
     static bool changePassword(int userId, const QString &oldPasswordHash, const QString &newPasswordHash);
-
-    // смена ФИО
     static bool changeFio(int userId, const QString &newFio);
 
     bool save(); // вставка новой записи
